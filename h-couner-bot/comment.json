@@ -1,0 +1,48 @@
+{
+	"data": {
+		"children": [
+			{
+				"data": {
+					"id": "n1lpkwx",
+					"author": "PROMAN8625",
+					"context": "/r/hcounterbot/comments/1lo5nde/minir_update_on_bot_as_got_some_some_time/n1lqt5s/?context=3",
+					"body": "btw, i have the u/h-counter-bot account"
+{
+	"kind": "Listing",
+	"data": {
+		"after": null,
+		"dist": 3,
+		"modhash": null,
+		"geo_filter": "",
+		"children": [
+			{
+				"kind": "t1",
+				"data": {
+					"first_message": null,
+					"first_message_name": null,
+					"subreddit": "hcounterbot",
+					"likes": null,
+					"replies": "",
+					"author_fullname": "t2_hcilgiqu",
+					"id": "n1lqt5s",
+					"subject": "username mention",
+					"associated_awarding_id": null,
+					"score": 1,
+					"author": "PROMAN8625",
+					"num_comments": 4,
+					"parent_id": "t1_n1ksl6n",
+					"subreddit_name_prefixed": "r/hcounterbot",
+					"new": true,
+					"type": "username_mention",
+					"body": "u/h-counter-bot",
+					"link_title": "Minir update on bot as got some some time unexpectedly",
+					"dest": "h-counter-bot",
+					"was_comment": true,
+					"body_html": "&lt;!-- SC_OFF --&gt;&lt;div class=\"md\"&gt;&lt;p&gt;&lt;a href=\"/u/h-counter-bot\"&gt;u/h-counter-bot&lt;/a&gt;&lt;/p&gt;\n&lt;/div&gt;&lt;!-- SC_ON --&gt;",
+					"name": "t1_n1lqt5s",
+					"created": 1751790128.0,
+					"created_utc": 1751790128.0,
+					"context": "/r/hcounterbot/comments/1lo5nde/minir_update_on_bot_as_got_some_some_time/n1lqt5s/?context=3",
+					"distinguished": null
+				}
+			}
