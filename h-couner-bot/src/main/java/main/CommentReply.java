@@ -37,7 +37,7 @@ public class CommentReply {
 			rating = "The h whisperer! You speak fluent h. We are not worthy.";
 		} else if (hScoreRaw < 200) {
 			rating = "Legendary h status! You're almost an h-bot"; // More epic
-		} else if (totalH / totalChars >= 99) {
+		} else if (totalH >= totalComments-10) {
 			rating = "exprected from an h bot, you got more h than comments.";
 		} else {
 			rating = "An h demigod! Your h count is off the charts, but still human....... probably.";
