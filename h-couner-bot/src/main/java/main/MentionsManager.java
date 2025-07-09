@@ -27,7 +27,7 @@ public class MentionsManager {
 		List<String[]> filteredMentions = new ArrayList<>();
 		try {
 			URL url = new URI("https://oauth.reddit.com/message/unread").toURL();
-			String responseBody = HttpUtil.performHttpRequest("GET", url, null, true, false);
+			String responseBody = HttpUtil.performHttpRequest("GET", url, null, false);
 
 			if (responseBody != null) {
 				JSONObject jsonResponse = new JSONObject(responseBody);
@@ -131,7 +131,7 @@ public class MentionsManager {
 	private static String getParentRedditor(String parentId) {
 		try {
 			URL url = new URI("https://oauth.reddit.com/api/info.json?id=" + parentId).toURL();
-			String responseBody = HttpUtil.performHttpRequest("GET", url, null, false, false);
+			String responseBody = HttpUtil.performHttpRequest("GET", url, null, false);
 
 			if (responseBody != null && !responseBody.isEmpty()) {
 				JSONObject jsonResponse = new JSONObject(responseBody);
@@ -185,7 +185,7 @@ public class MentionsManager {
 			url = new URI("https://oauth.reddit.com/r/" + subreddit + "/comments/" + postId + "/.json").toURL();
 
 			JSONArray jsonArrayResponse;
-			jsonArrayResponse = new JSONArray(HttpUtil.performHttpRequest("GET", url, null, true, false));
+			jsonArrayResponse = new JSONArray(HttpUtil.performHttpRequest("GET", url, null, false));
 			// The first element of the array is the submission itself
 			JSONObject submissionData = jsonArrayResponse.getJSONObject(0).getJSONObject("data")
 					.getJSONArray("children").getJSONObject(0).getJSONObject("data");

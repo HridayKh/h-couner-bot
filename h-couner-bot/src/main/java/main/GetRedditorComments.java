@@ -56,7 +56,7 @@ public class GetRedditorComments {
 
 			try {
 				URL apiUrl = new URI(url).toURL();
-				String responseBody = HttpUtil.performHttpRequest("GET", apiUrl, null, false, false);
+				String responseBody = HttpUtil.performHttpRequest("GET", apiUrl, null, false);
 				pages++; // Increment the page count for each request
 				if (responseBody != null) {
 					JSONObject jsonResponse = new JSONObject(responseBody);

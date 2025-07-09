@@ -69,7 +69,7 @@ public class CommentReply {
 					+ URLEncoder.encode(replyText, StandardCharsets.UTF_8.toString()) + "&thing_id="
 					+ URLEncoder.encode(fullThingId, StandardCharsets.UTF_8.toString());
 
-			String responseBody = HttpUtil.performHttpRequest("POST", url, postBody, true, false);
+			String responseBody = HttpUtil.performHttpRequest("POST", url, postBody, false);
 
 			if (responseBody != null) {
 				JSONObject jsonResponse = new JSONObject(responseBody);
@@ -122,7 +122,7 @@ public class CommentReply {
 
 			String postBody = "id=" + idsParam;
 
-			String responseBody = HttpUtil.performHttpRequest("POST", url, postBody, true, false);
+			String responseBody = HttpUtil.performHttpRequest("POST", url, postBody, false);
 
 			return responseBody != null; // If responseBody is not null, request was successful (2xx)
 		} catch (Exception e) {

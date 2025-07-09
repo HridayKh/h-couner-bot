@@ -26,7 +26,7 @@ public class TokenAuth {
 				throw new RuntimeException("UTF-8 encoding not supported for password, which is unexpected.", e);
 			}
 
-			String responseBody = HttpUtil.performHttpRequest("POST", url, body, true, true);
+			String responseBody = HttpUtil.performHttpRequest("POST", url, body, true);
 			JSONObject jsonResponse = new JSONObject(responseBody);
 
 			if (responseBody != null) {

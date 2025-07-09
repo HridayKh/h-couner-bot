@@ -29,8 +29,8 @@ public class HttpUtil {
 	 * @throws URISyntaxException
 	 * @throws InterruptedException
 	 */
-	public static String performHttpRequest(String method, URL url, String postBody, boolean needsAuth,
-			boolean isAccessTokenRequest) throws IOException, URISyntaxException, InterruptedException {
+	public static String performHttpRequest(String method, URL url, String postBody, boolean isAccessTokenRequest)
+			throws IOException, URISyntaxException, InterruptedException {
 
 		System.out.println("\n\t---------");
 		Thread.sleep(2 * 1000); // Sleep for 1 second to avoid hitting rate limits too quickly
@@ -41,15 +41,14 @@ public class HttpUtil {
 		conn.setDoOutput(method.equals("POST"));
 		conn.setRequestProperty("User-Agent", Main.USER_AGENT);
 
-		if (needsAuth) {
-			if (isAccessTokenRequest) {
-				String auth = Main.CLIENT_ID + ":" + Main.CLIENT_SECRET;
-				String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes());
-				conn.setRequestProperty("Authorization", "Basic " + encodedAuth);
-			} else {
-				conn.setRequestProperty("Authorization", "Bearer " + Main.TOKEN);
-			}
+		if (isAccessTokenRequest) {
+			String auth = Main.CLIENT_ID + ":" + Main.CLIENT_SECRET;
+			String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes());
+			conn.setRequestProperty("Authorization", "Basic " + encodedAuth);
+		} else {
+			conn.setRequestProperty("Authorization", "Bearer " + Main.TOKEN);
 		}
+
 		if (method.equals("POST") && postBody != null && !postBody.isEmpty()) {
 			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 			try (OutputStream os = conn.getOutputStream()) {

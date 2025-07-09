@@ -43,11 +43,11 @@ public class Main {
 				}
 
 				update_loop();
-//				Thread.sleep(5000);
-//			} catch (InterruptedException e) {
-//				Thread.currentThread().interrupt();
-//				System.err.println("Bot interrupted: " + e.getMessage());
-//				break;
+				Thread.sleep(3000);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				System.err.println("Bot interrupted: " + e.getMessage());
+				break;
 			} catch (Exception e) {
 				System.err.println("An unexpected error occurred in main loop: " + e.getMessage());
 				e.printStackTrace();
@@ -67,7 +67,8 @@ public class Main {
 			System.out.println("Access token is missing or expired, attempting to refresh...");
 			String[] newTokenArr = TokenAuth.getAccessToken();
 			String newToken = newTokenArr != null ? newTokenArr[0] : null;
-			int expiresIn = newTokenArr != null ? Integer.parseInt(newTokenArr[1]) : null;
+//			int expiresIn = newTokenArr != null ? Integer.parseInt(newTokenArr[1]) : 3600;
+			int expiresIn = 3000;
 
 			if (newToken != null) {
 				TOKEN = newToken;
