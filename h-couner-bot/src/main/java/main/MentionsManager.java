@@ -11,7 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class ReadComments {
+public class MentionsManager {
 
 	/**
 	 * Fetches unread messages from Reddit and filters them to return only username
@@ -75,11 +75,25 @@ public class ReadComments {
 			}
 
 			String author = message.getString("author");
-			String body = message.getString("body").toLowerCase().replace("u/h-counter-bot", "").trim();
+			String body = message.getString("body").toLowerCase().replaceFirst("u/h-counter-bot", "").trim();
 			String targetUser;
 
 			if (body.contains("[self]")) {
 				targetUser = author;
+			} else if (body.contains("op")) {
+				String context = message.getString("context");
+				if (context != null) { // Add this null check
+					targetUser = getOP(context);
+				} else {
+					// Handle the case where context is null, perhaps log a warning
+					System.err.println("Context is null for message ID: " + messageId
+							+ ". Cannot get OP. Trying to get parent redditor.");
+					// Decide what targetUser should be in this case, e.g., default or skip
+					targetUser = getParentRedditor(
+							message.has("parent_id") && !message.isNull("parent_id") ? message.getString("parent_id")
+									: null);
+
+				}
 			} else if (body.contains("u/")) {
 				int start = body.indexOf("u/") + 2;
 				int end = body.indexOf(" ", start);
@@ -88,11 +102,10 @@ public class ReadComments {
 				}
 				targetUser = body.substring(start, end);
 				targetUser = targetUser.replaceAll("[^a-zA-Z0-9_-]", "");
-			} else if (body.contains("op")) {
-				targetUser = getOP(message.getString("context"));
-
 			} else {
-				targetUser = getParentRedditor(message.getString("parent_id"));
+				targetUser = getParentRedditor(
+						message.has("parent_id") && !message.isNull("parent_id") ? message.getString("parent_id")
+								: null);
 			}
 			if (targetUser == null) {
 				System.err.println("Could not determine target user for mention ID: " + messageId + ". Skipping.");
@@ -169,10 +182,10 @@ public class ReadComments {
 			String postId = parts[4]; // The post_id
 
 			URL url;
-			url = new URI("https://www.reddit.com/r/" + subreddit + "/comments/" + postId + "/.json").toURL();
+			url = new URI("https://oauth.reddit.com/r/" + subreddit + "/comments/" + postId + "/.json").toURL();
 
 			JSONArray jsonArrayResponse;
-			jsonArrayResponse = new JSONArray(HttpUtil.performHttpRequest("GET", url, null, false, false));
+			jsonArrayResponse = new JSONArray(HttpUtil.performHttpRequest("GET", url, null, true, false));
 			// The first element of the array is the submission itself
 			JSONObject submissionData = jsonArrayResponse.getJSONObject(0).getJSONObject("data")
 					.getJSONArray("children").getJSONObject(0).getJSONObject("data");

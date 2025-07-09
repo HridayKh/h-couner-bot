@@ -86,14 +86,15 @@ public class HttpUtil {
 		}
 
 		System.out.println(responseMessage + "(" + responseCode + ") " + responseBody.length());
-//		System.out.println(responseBody.length() > 100 ? responseBody.substring(0, 100) + "..." : responseBody);
-		System.out.println(responseBody.replaceAll(" ", ""));
+		System.out.println(responseBody.length() > 100 ? responseBody.substring(0, 100) + "..." : responseBody);
+//		System.out.println(responseBody.replaceAll(" ", ""));
 		System.out.println("Remaining=" + remaining + ", Reset=" + reset + ", Used=" + used);
 
 		if (responseCode >= 200 && responseCode < 300) {
 			return responseBody;
 		} else {
-			System.err.println("HTTP request failed with code: " + responseCode + " - " + responseMessage);
+			System.err.println("\n\n\nHTTP request failed with code: " + responseCode + " - " + responseMessage);
+			System.err.println(responseBody);
 			return null;
 		}
 	}
@@ -116,7 +117,7 @@ public class HttpUtil {
 						.ofInstant(java.time.Instant.ofEpochMilli(nextRequestTime), java.time.ZoneId.systemDefault()));
 
 				System.err.println("HTTP 429 Too Many Requests. Forced sleep for " + (sleepFor / 1000) + "s.");
-//				Thread.sleep(sleepFor);
+				Thread.sleep(sleepFor);
 			}
 
 		} catch (NumberFormatException e) {
