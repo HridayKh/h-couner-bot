@@ -13,43 +13,51 @@ import org.json.JSONObject;
 public class CommentReply {
 
 	public static String determineResult(long[] inf, int totalComments, String author, String targetUser) {
+		// Only printing will be impacted on a letter-independent scenario
 		double totalChars = (double) inf[0] + 1.0;
 		double totalH = (double) inf[1];
+		double stretches = (double) inf[2];
+		double maxStretch = (double) inf[3];
+		String letter = "" + (char) inf[4];
 		double hScoreRaw = (totalH / (totalChars - totalH)) * 100;
 		// tc: 48563, h: 1786, tm: 954
 		String hScore = String.format("%.4f", hScoreRaw);
+		String vowel = letter.indexOf("aeiouAEIOU") != -1 ? "an" : "a";
 		String rating = "";
 		if (hScoreRaw < 1) {
 			rating = "Fuck You. Seriously, where's the h? Did you even try?"; // Added a bit more sass
 		} else if (hScoreRaw < 2) { // This still catches 0 < hScoreRaw < 1
 			rating = "Is that even an h? I can barely see h! Or do my eyes deceive me."; // More dramatic
 		} else if (hScoreRaw < 3) {
-			rating = "Barely an h enthusiast. Get those fingers moving, pal."; // More direct, casual
+			rating = "Barely " + vowel + " " + letter + " enthusiast. Get those fingers moving, pal."; // More direct, casual
 		} else if (hScoreRaw < 6) {
-			rating = "Solid h game, not gonna lie. Pretty average, though."; // More conversational
+			rating = "Solid " + letter + " game, not gonna lie. Pretty average, though."; // More conversational
 		} else if (hScoreRaw < 10) {
-			rating = "Above average h usage! You're clearly a person of culture."; // Casual compliment
+			rating = "Above average " + letter + " usage! You're clearly a person of culture."; // Casual compliment
 		} else if (hScoreRaw < 20) {
-			rating = "Whoa, that's a lot of hs! Are you sexually attracted to it?"; // Playful surprise
+			rating = "Whoa, that's a lot of " + letter.toUpperCase() + "s! Are you sexually attracted to it?"; // Playful surprise
 		} else if (hScoreRaw < 50) {
-			rating = "Ah yes, an h enthusiast, HhHhHhHh. Impressive."; // More vivid imagery
+			String letsGo = letter.toUpperCase() + letter;
+			letsGo = letsGo + letsGo + letsGo + letsGo;
+			rating = "Ah yes, " + vowel + " " + letter + " enthusiast, " + letsGo + ". Impressive."; // More vivid imagery
 		} else if (hScoreRaw < 100) {
-			rating = "The h whisperer! You speak fluent h. We are not worthy.";
+			rating = "The " + letter + " whisperer! You speak fluent " + letter + ". We are not worthy.";
 		} else if (hScoreRaw < 200) {
-			rating = "Legendary h status! You're almost an h-bot"; // More epic
+			rating = "Legendary h status! You're almost " + vowel + " " + letter + "-bot"; // More epic
 		} else if (totalH >= totalComments-10) {
-			rating = "exprected from an h bot, you got more h than comments.";
+			rating = "expected from " + vowel + " " + letter + " bot, you got more " + letter + " than comments.";
 		} else {
-			rating = "An h demigod! Your h count is off the charts, but still human....... probably.";
+			String vowel1 = Character.toUpperCase(vowel.charAt(0)) + vowel.substring(1);
+			rating = vowel1 + " " + letter + " demigod! Your " + letter + " count is off the charts, but still human....... probably.";
 		}
 
-		return "Hey u/" + author + "! You wanted to know about the hScore of u/" + targetUser + "?\n\n"
-				+ "Well, here's the lowdown:\n" + "u/" + targetUser + " has dropped " + totalComments
+		return "Hey u/" + author + "! You wanted to know about the " + letter + "Score of u/" + targetUser + "? "
+				+ "Well, here's the lowdown:\n\n" + "u/" + targetUser + " has dropped " + totalComments
 				+ " comments, flexing a grand total of " + (totalChars - 1) + " characters.\n"
-				+ "Within those, I meticulously counted a whopping `" + totalH + "` *h* or *H* characters!\n\n"
-				+ "That brings us to the moment of truth: the legendary H-Score (that's 'h's per every non-'h' character, for the uninitiated) is a solid ***"
-				+ hScore + "***, which is a rating of " + rating
-				+ "\n\nThis message was brought to you by the H-Counter Bot, report error or issues to the mods or r/hcounterbot";
+				+ "Within those, I meticulously counted a whopping `" + totalH + "` *" + letter + "* or *" + letter.toUpperCase() + "* characters!\n\n"
+				+ "That brings us to the moment of truth: the legendary " + letter.toUpperCase() + "-Score (that's '" + letter + "'s per every non-'" + letter + "' character, for the uninitiated) is a solid ***"
+				+ hScore + "***.\n\n\n #" + rating
+				+ "\n\n^(This message was brought to you by the H-Counter Bot. report any errors or issues to the mods or to r/hcounterbot)";
 
 	}
 

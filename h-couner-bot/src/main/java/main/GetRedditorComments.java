@@ -7,6 +7,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -15,17 +18,29 @@ public class GetRedditorComments {
 	 * Calculates total characters and total h characters in an array of comments.
 	 *
 	 * @param comments An array of comment strings.
-	 * @return A long array where index 0 is total characters and index 1 is total h
-	 *         characters.
+	 * @return A long array where index 0 is total characters and index 1 is total h characters. Index 2 is the no. of stretches of H and index 3 is the maximum length among those stretches. Index 5 is for the ASCII code of the letter.
 	 */
-	public static long[] parseCommentH(String[] comments) {
+	public static long[] parseCommentH(String[] comments, String letter) {
+		String regex = "(?=[" + letter + letter.toUpperCase() + "]{2})[" + letter + letter.toUpperCase() + "]+";
+        Pattern pattern = Pattern.compile(regex);
+		
+		long stretches = 0;
+		long maxStretch = 0;
 		long totalChars = 0;
 		long totalH = 0;
+
 		for (String comment : comments) {
 			totalChars += comment.length();
-			totalH += comment.length() - comment.toLowerCase().replace("h", "").length();
+			totalH += comment.length() - comment.toLowerCase().replace(letter, "").length();
+			Matcher matcher = pattern.matcher(comment);
+			while (matcher.find()) {
+				int length = matcher.group().length();
+				if (maxStretch < length)
+					maxStretch = length;
+				stretches++;
+			}
 		}
-		return new long[] { totalChars, totalH };
+		return new long[] { totalChars, totalH, stretches, maxStretch, (long) letter.charAt(0) };
 	}
 
 	/**
