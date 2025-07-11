@@ -72,6 +72,7 @@ public class MentionsManager {
 						+ message.getString("body") + ")");
 				fullnamesToMarkAsRead.add(messageFullname);
 				Main.processedMessageFullnames.add(messageFullname);
+				continue;
 			}
 
 			String author = message.getString("author");
