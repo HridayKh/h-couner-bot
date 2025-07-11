@@ -13,7 +13,7 @@ import org.json.JSONObject;
 public class CommentReply {
 
 	public static String determineResult(long[] inf, int totalComments, String author, String targetUser) {
-		// Only printing will be impacted on a letter-independent scenario
+		// Only printing will be impacted in a letter-independent scenario
 		double totalChars = (double) inf[0] + 1.0;
 		double totalH = (double) inf[1];
 		double stretches = (double) inf[2];
