@@ -95,7 +95,7 @@ public class Main {
 			String targetUser = mention[2]; // The user being queried (e.g., "PROMAN8625")
 			String fullname = mention[3]; // The full ID (e.g., "t1_n1lqt5s")
 			String letter = "h"; // The letter to be scanned (preferably taken as an input from the user), if no input given, then 'h'
-			letter = letter.toLowerCase().charAt(0);
+			letter = "" + letter.toLowerCase().charAt(0);
 
 			System.out.println("Processing Mention ID: " + id + ", Author: " + author + ", Target User: " + targetUser);
 

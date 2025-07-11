@@ -56,8 +56,8 @@ public class CommentReply {
 				+ " comments, flexing a grand total of " + (totalChars - 1) + " characters.\n"
 				+ "Within those, I meticulously counted a whopping `" + totalH + "` *" + letter + "* or *" + letter.toUpperCase() + "* characters!\n\n"
 				+ "That brings us to the moment of truth: the legendary " + letter.toUpperCase() + "-Score (that's '" + letter + "'s per every non-'" + letter + "' character, for the uninitiated) is a solid ***"
-				+ hScore + "***.\n\n\n #" + rating
-				+ "\n\n^(This message was brought to you by the H-Counter Bot. Report any errors or issues to the mods or to r/hcounterbot.)";
+				+ hScore + "***.\n\n\n **" + rating + "**"
+				+ "\n\n\n^(This message was brought to you by the H-Counter Bot. Report any errors or issues to the mods or to r/hcounterbot.)";
 
 	}
 

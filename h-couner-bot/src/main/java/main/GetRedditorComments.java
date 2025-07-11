@@ -32,7 +32,7 @@ public class GetRedditorComments {
 		for (String comment : comments) {
 			totalChars += comment.length();
 			totalH += comment.length() - comment.toLowerCase().replace(letter, "").length();
-			Matcher matcher = pattern.matcher(comment);
+			Matcher matcher = pattern.matcher(comment.replaceAll("\\s+", "")); // Only omitted spaces, one should ideally remove symbols too
 			while (matcher.find()) {
 				int length = matcher.group().length();
 				if (maxStretch < length)
