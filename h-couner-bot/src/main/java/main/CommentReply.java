@@ -43,7 +43,7 @@ public class CommentReply {
 		} else if (hScoreRaw < 100) {
 			rating = "The " + letter + " whisperer! You speak fluent " + letter + ". We are not worthy.";
 		} else if (hScoreRaw < 200) {
-			rating = "Legendary h status! You're almost " + vowel + " " + letter + "-bot"; // More epic
+			rating = "Legendary " + letter + " status! You're almost " + vowel + " " + letter + "-bot"; // More epic
 		} else if (totalH >= totalComments-10) {
 			rating = "expected from " + vowel + " " + letter + " bot, you got more " + letter + " than comments.";
 		} else {
@@ -57,7 +57,7 @@ public class CommentReply {
 				+ "Within those, I meticulously counted a whopping `" + totalH + "` *" + letter + "* or *" + letter.toUpperCase() + "* characters!\n\n"
 				+ "That brings us to the moment of truth: the legendary " + letter.toUpperCase() + "-Score (that's '" + letter + "'s per every non-'" + letter + "' character, for the uninitiated) is a solid ***"
 				+ hScore + "***.\n\n\n #" + rating
-				+ "\n\n^(This message was brought to you by the H-Counter Bot. report any errors or issues to the mods or to r/hcounterbot)";
+				+ "\n\n^(This message was brought to you by the H-Counter Bot. Report any errors or issues to the mods or to r/hcounterbot.)";
 
 	}
 
