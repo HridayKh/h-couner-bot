@@ -74,12 +74,23 @@ public class MentionsManager {
 				Main.processedMessageFullnames.add(messageFullname);
 				continue;
 			}
-
 			String author = message.getString("author");
-			String body = message.getString("body").toLowerCase().replaceFirst("u/h-counter-bot", "").trim();
+			String body = message.getString("body").toLowerCase();
 			String targetUser;
 
-			if (body.contains("[self]")) {
+			if (isComment && !isMention && !body.contains("u/h-counter-bot")) {
+				System.out.println("Skipping non-mention message: " + messageFullname + " (Type: "
+						+ (message.has("type") ? message.getString("type") : "N/A") + ", WasComment: "
+						+ (message.has("was_comment") ? message.getBoolean("was_comment") : "N/A") + ", Body: "
+						+ message.getString("body") + ")");
+				fullnamesToMarkAsRead.add(messageFullname);
+				Main.processedMessageFullnames.add(messageFullname);
+				continue;
+			}
+
+			body = body.replaceFirst("u/h-counter-bot", "").trim();
+
+			if (body.contains("[self]") || body.contains("\\[self\\]")) {
 				targetUser = author;
 			} else if (body.contains("op")) {
 				String context = message.getString("context");

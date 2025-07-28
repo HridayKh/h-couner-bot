@@ -16,7 +16,6 @@ public class CommentReply {
 		double totalChars = (double) inf[0] + 1.0;
 		double totalH = (double) inf[1];
 		double hScoreRaw = (totalH / (totalChars - totalH)) * 100;
-		// tc: 48563, h: 1786, tm: 954
 		String hScore = String.format("%.4f", hScoreRaw);
 		String rating = "";
 		if (hScoreRaw < 1) {
@@ -45,10 +44,10 @@ public class CommentReply {
 
 		return "Hey u/" + author + "! You wanted to know about the hScore of u/" + targetUser + "?\n\n"
 				+ "Well, here's the lowdown:\n" + "u/" + targetUser + " has dropped " + totalComments
-				+ " comments, flexing a grand total of " + (totalChars - 1) + " characters.\n"
-				+ "Within those, I meticulously counted a whopping `" + totalH + "` *h* or *H* characters!\n\n"
-				+ "That brings us to the moment of truth: the legendary H-Score (that's 'h's per every non-'h' character, for the uninitiated) is a solid ***"
-				+ hScore + "***, which is a rating of " + rating
+				+ " comments, flexing a grand total of `" + inf[0] + "` characters.\n"
+				+ "Within those, I meticulously counted a whopping `" + inf[1] + "` ***h*** or ***H*** characters!\n\n"
+				+ "That brings us to the moment of truth: the legendary H-Score (that's 'h's per every non-'h' character, for the uninitiated) is a solid ***`"
+				+ hScore + "`***, which is a rating of " + rating
 				+ "\n\nThis message was brought to you by the H-Counter Bot, report error or issues to the mods or r/hcounterbot";
 
 	}
