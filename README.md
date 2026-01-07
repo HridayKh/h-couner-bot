@@ -7,8 +7,6 @@ A Reddit bot that analyzes users' comments to count the frequency of the letter 
 - [Overview](#overview)
 - [Features](#features)
 - [How It Works](#how-it-works)
-- [Setup](#setup)
-- [Environment Variables](#environment-variables)
 - [Usage](#usage)
 - [API Endpoints](#api-endpoints)
 - [Rate Limiting](#rate-limiting)
@@ -59,82 +57,6 @@ H-Score = (h_count / (total_characters - h_count)) × 100
 - **100-200%**: "Legendary h status! You're almost an h-bot"
 - **200%+**: "An h demigod! Your h count is off the charts, but still human....... probably."
 
-## Setup
-
-### Prerequisites
-
-- Java 21 or higher
-- Maven 3.6 or higher
-- Reddit account with API access
-- Reddit application credentials
-
-### Installation
-
-1. **Clone the repository**:
-   ```bash
-   git clone <repository-url>
-   cd h-counter-bot
-   ```
-
-2. **Create Reddit Application**:
-   - Go to https://www.reddit.com/prefs/apps
-   - Click "Create App" or "Create Another App"
-   - Choose "script" type
-   - Note down the client ID and secret
-
-3. **Set up environment variables** (see [Environment Variables](#environment-variables))
-
-4. **Build the project**:
-   ```bash
-   mvn clean compile
-   ```
-
-5. **Run the bot**:
-   ```bash
-   mvn exec:java -Dexec.mainClass="main.Main"
-   ```
-
-## Environment Variables
-
-The bot requires the following environment variables to be set:
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `h_bot_id` | Reddit application client ID | `your_client_id_here` |
-| `h_bot_secret` | Reddit application client secret | `your_client_secret_here` |
-| `h_bot_username` | Reddit bot account username | `h-counter-bot` |
-| `h_bot_pass` | Reddit bot account password | `your_password_here` |
-| `h_bot_file` | Path to file for storing processed message IDs | `C:\path\to\processed_ids.txt` |
-
-### Setting Environment Variables
-
-**Linux/Mac**:
-```bash
-export h_bot_id="your_client_id"
-export h_bot_secret="your_client_secret"
-export h_bot_username="your_username"
-export h_bot_pass="your_password"
-export h_bot_file="/path/to/processed_ids.txt"
-```
-
-**Windows (Command Prompt)**:
-```cmd
-set h_bot_id=your_client_id
-set h_bot_secret=your_client_secret
-set h_bot_username=your_username
-set h_bot_pass=your_password
-set h_bot_file=C:\path\to\processed_ids.txt
-```
-
-**Windows (PowerShell)**:
-```powershell
-$env:h_bot_id="your_client_id"
-$env:h_bot_secret="your_client_secret"
-$env:h_bot_username="your_username"
-$env:h_bot_pass="your_password"
-$env:h_bot_file="C:\path\to\processed_ids.txt"
-```
-
 ## Usage
 
 ### Mentioning the Bot
@@ -158,17 +80,6 @@ That brings us to the moment of truth: the legendary H-Score (that's 'h's per ev
 
 This message was brought to you by the H-Counter Bot, report error or issues to the mods or r/hcounterbot
 ```
-
-## API Endpoints
-
-The bot interacts with the following Reddit API endpoints:
-
-- **Authentication**: `POST /api/v1/access_token`
-- **Unread Messages**: `GET /message/unread`
-- **User Comments**: `GET /user/{username}/comments/.json`
-- **Comment Reply**: `POST /api/comment`
-- **Mark as Read**: `POST /api/read_message`
-- **Comment/Post Info**: `GET /api/info.json`
 
 ## Rate Limiting
 
