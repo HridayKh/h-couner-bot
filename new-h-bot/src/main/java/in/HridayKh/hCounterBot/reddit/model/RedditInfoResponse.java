@@ -1,7 +1,9 @@
 package in.HridayKh.hCounterBot.reddit.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RedditInfoResponse {
     @JsonProperty("kind")
     private String kind;
@@ -25,6 +27,7 @@ public class RedditInfoResponse {
         this.data = data;
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ListingData {
         @JsonProperty("children")
         private InfoThing[] children;
@@ -82,6 +85,7 @@ public class RedditInfoResponse {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class InfoThing {
         @JsonProperty("kind")
         private String kind;
@@ -106,6 +110,7 @@ public class RedditInfoResponse {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ThingData {
         @JsonProperty("id")
         private String id;
