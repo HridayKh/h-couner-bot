@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class RedditListingResponse {
+public class RedditInfoResponse {
     @JsonProperty("kind")
     private String kind;
 
@@ -30,7 +30,7 @@ public class RedditListingResponse {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ListingData {
         @JsonProperty("children")
-        private RedditThing[] children;
+        private InfoThing[] children;
 
         @JsonProperty("after")
         private String after;
@@ -44,11 +44,11 @@ public class RedditListingResponse {
         @JsonProperty("dist")
         private Integer dist;
 
-        public RedditThing[] getChildren() {
+        public InfoThing[] getChildren() {
             return children;
         }
 
-        public void setChildren(RedditThing[] children) {
+        public void setChildren(InfoThing[] children) {
             this.children = children;
         }
 
@@ -86,12 +86,12 @@ public class RedditListingResponse {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class RedditThing {
+    public static class InfoThing {
         @JsonProperty("kind")
         private String kind;
 
         @JsonProperty("data")
-        private Object data;
+        private ThingData data;
 
         public String getKind() {
             return kind;
@@ -101,12 +101,81 @@ public class RedditListingResponse {
             this.kind = kind;
         }
 
-        public Object getData() {
+        public ThingData getData() {
             return data;
         }
 
-        public void setData(Object data) {
+        public void setData(ThingData data) {
             this.data = data;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class ThingData {
+        @JsonProperty("id")
+        private String id;
+
+        @JsonProperty("name")
+        private String name;
+
+        @JsonProperty("author")
+        private String author;
+
+        @JsonProperty("body")
+        private String body;
+
+        @JsonProperty("created_utc")
+        private Double createdUtc;
+
+        @JsonProperty("subreddit")
+        private String subreddit;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getAuthor() {
+            return author;
+        }
+
+        public void setAuthor(String author) {
+            this.author = author;
+        }
+
+        public String getBody() {
+            return body;
+        }
+
+        public void setBody(String body) {
+            this.body = body;
+        }
+
+        public Double getCreatedUtc() {
+            return createdUtc;
+        }
+
+        public void setCreatedUtc(Double createdUtc) {
+            this.createdUtc = createdUtc;
+        }
+
+        public String getSubreddit() {
+            return subreddit;
+        }
+
+        public void setSubreddit(String subreddit) {
+            this.subreddit = subreddit;
         }
     }
 }

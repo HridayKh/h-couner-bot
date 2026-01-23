@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class RedditListingResponse {
+public class RedditPostCommentsResponse {
     @JsonProperty("kind")
     private String kind;
 
@@ -30,7 +30,7 @@ public class RedditListingResponse {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ListingData {
         @JsonProperty("children")
-        private RedditThing[] children;
+        private CommentThing[] children;
 
         @JsonProperty("after")
         private String after;
@@ -44,11 +44,11 @@ public class RedditListingResponse {
         @JsonProperty("dist")
         private Integer dist;
 
-        public RedditThing[] getChildren() {
+        public CommentThing[] getChildren() {
             return children;
         }
 
-        public void setChildren(RedditThing[] children) {
+        public void setChildren(CommentThing[] children) {
             this.children = children;
         }
 
@@ -86,12 +86,12 @@ public class RedditListingResponse {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class RedditThing {
+    public static class CommentThing {
         @JsonProperty("kind")
         private String kind;
 
         @JsonProperty("data")
-        private Object data;
+        private CommentData data;
 
         public String getKind() {
             return kind;
@@ -101,12 +101,92 @@ public class RedditListingResponse {
             this.kind = kind;
         }
 
-        public Object getData() {
+        public CommentData getData() {
             return data;
         }
 
-        public void setData(Object data) {
+        public void setData(CommentData data) {
             this.data = data;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class CommentData {
+        @JsonProperty("id")
+        private String id;
+
+        @JsonProperty("author")
+        private String author;
+
+        @JsonProperty("body")
+        private String body;
+
+        @JsonProperty("created_utc")
+        private Double createdUtc;
+
+        @JsonProperty("parent_id")
+        private String parentId;
+
+        @JsonProperty("link_id")
+        private String linkId;
+
+        @JsonProperty("name")
+        private String name;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getAuthor() {
+            return author;
+        }
+
+        public void setAuthor(String author) {
+            this.author = author;
+        }
+
+        public String getBody() {
+            return body;
+        }
+
+        public void setBody(String body) {
+            this.body = body;
+        }
+
+        public Double getCreatedUtc() {
+            return createdUtc;
+        }
+
+        public void setCreatedUtc(Double createdUtc) {
+            this.createdUtc = createdUtc;
+        }
+
+        public String getParentId() {
+            return parentId;
+        }
+
+        public void setParentId(String parentId) {
+            this.parentId = parentId;
+        }
+
+        public String getLinkId() {
+            return linkId;
+        }
+
+        public void setLinkId(String linkId) {
+            this.linkId = linkId;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
         }
     }
 }

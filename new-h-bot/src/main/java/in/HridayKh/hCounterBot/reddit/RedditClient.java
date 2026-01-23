@@ -5,8 +5,11 @@ import java.util.List;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 import in.HridayKh.hCounterBot.reddit.model.RedditCommentResponse;
-import in.HridayKh.hCounterBot.reddit.model.RedditListingResponse;
+import in.HridayKh.hCounterBot.reddit.model.RedditInfoResponse;
+import in.HridayKh.hCounterBot.reddit.model.RedditPostCommentsResponse;
 import in.HridayKh.hCounterBot.reddit.model.RedditTokenResponse;
+import in.HridayKh.hCounterBot.reddit.model.RedditUnreadMessagesResponse;
+import in.HridayKh.hCounterBot.reddit.model.RedditUserCommentsResponse;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.GET;
@@ -45,23 +48,23 @@ public interface RedditClient {
 
     @GET
     @Path("/user/{author}/comments/.json")
-    RedditListingResponse getUserComments(@HeaderParam("Authorization") String bearerToken,
+    RedditUserCommentsResponse getUserComments(@HeaderParam("Authorization") String bearerToken,
             @PathParam("author") String author,
             @QueryParam("limit") int limit,
             @QueryParam("after") String after);
 
     @GET
     @Path("/message/unread")
-    RedditListingResponse getUnreadMessages(@HeaderParam("Authorization") String bearerToken);
+    RedditUnreadMessagesResponse getUnreadMessages(@HeaderParam("Authorization") String bearerToken);
 
     @GET
     @Path("/api/info.json")
-    RedditListingResponse getInfo(@HeaderParam("Authorization") String bearerToken,
+    RedditInfoResponse getInfo(@HeaderParam("Authorization") String bearerToken,
             @QueryParam("id") String id);
 
     @GET
     @Path("/r/{subreddit}/comments/{postId}/.json")
-    List<RedditListingResponse> getPostComments(@HeaderParam("Authorization") String bearerToken,
+    List<RedditPostCommentsResponse> getPostComments(@HeaderParam("Authorization") String bearerToken,
             @PathParam("subreddit") String subreddit,
             @PathParam("postId") String postId);
 
