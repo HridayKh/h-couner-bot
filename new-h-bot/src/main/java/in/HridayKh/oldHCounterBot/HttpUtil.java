@@ -1,4 +1,4 @@
-package main;
+package in.HridayKh.oldHCounterBot;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -38,7 +38,7 @@ public class HttpUtil {
 
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 		conn.setRequestMethod(method);
-		conn.setDoOutput(method.equalsIgnoreCase("POST"));
+		conn.setDoOutput(method.equals("POST"));
 		conn.setRequestProperty("User-Agent", Main.USER_AGENT);
 
 		if (isAccessTokenRequest) {
@@ -49,7 +49,7 @@ public class HttpUtil {
 			conn.setRequestProperty("Authorization", "Bearer " + Main.TOKEN);
 		}
 
-		if (method.equalsIgnoreCase("POST") && postBody != null && !postBody.isEmpty()) {
+		if (method.equals("POST") && postBody != null && !postBody.isEmpty()) {
 			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 			try (OutputStream os = conn.getOutputStream()) {
 				os.write(postBody.getBytes(StandardCharsets.UTF_8));

@@ -1,4 +1,4 @@
-package main;
+package in.HridayKh.oldHCounterBot;
 
 import java.io.IOException;
 import java.net.URI;
@@ -41,8 +41,7 @@ public class MentionsManager {
 				}
 			}
 		} catch (IOException | URISyntaxException | InterruptedException e) {
-			System.err.println("An unexpected error occurred in getUnreadMessagesAndFilterMentions: "
-					+ e.getMessage());
+			System.err.println("An unexpected error occurred in getUnreadMessagesAndFilterMentions: " + e.getMessage());
 			e.printStackTrace();
 		}
 		return filteredMentions;
@@ -55,20 +54,7 @@ public class MentionsManager {
 
 			JSONObject message = children.getJSONObject(i).getJSONObject("data");
 			String messageFullname = message.getString("name");
-
-			if (message.has("type") && !message.getString("type").equalsIgnoreCase("username_mention")) {
-				System.out.println("Skipping non-username_mention message: " + messageFullname);
-				fullnamesToMarkAsRead.add(messageFullname);
-				continue;
-			}
 			String messageId = message.getString("id");
-			String author = message.getString("author");
-
-			if (author.equalsIgnoreCase("h-counter-bot")) {
-				System.out.println("Skipping message from bot itself: " + messageFullname);
-				fullnamesToMarkAsRead.add(messageFullname);
-				continue;
-			}
 
 			if (Main.processedMessageFullnames.contains(messageFullname)) {
 				System.out.println("Skipping already processed message: " + messageFullname);
@@ -76,17 +62,26 @@ public class MentionsManager {
 				continue;
 			}
 
-			String body = message.getString("body").toLowerCase();
 			boolean isComment = message.has("was_comment") && message.getBoolean("was_comment");
-			boolean isMention = body.contains("u/h-counter-bot");
+			boolean isMention = message.getString("body").contains("u/h-counter-bot");
 
-			if (!(isComment && isMention)) {
+			if (!isComment && !isMention) {
 				System.out.println("Skipping non-mention message: " + messageFullname + " (Type: "
-						+ (message.has("type") ? message.getString("type") : "N/A")
-						+ ", WasComment: "
-						+ (message.has("was_comment") ? message.getBoolean("was_comment")
-								: "N/A")
-						+ ", Body: "
+						+ (message.has("type") ? message.getString("type") : "N/A") + ", WasComment: "
+						+ (message.has("was_comment") ? message.getBoolean("was_comment") : "N/A") + ", Body: "
+						+ message.getString("body") + ")");
+				fullnamesToMarkAsRead.add(messageFullname);
+				Main.processedMessageFullnames.add(messageFullname);
+				continue;
+			}
+			String author = message.getString("author");
+			String body = message.getString("body").toLowerCase();
+			String targetUser;
+
+			if (isComment && !isMention && !body.contains("u/h-counter-bot")) {
+				System.out.println("Skipping non-mention message: " + messageFullname + " (Type: "
+						+ (message.has("type") ? message.getString("type") : "N/A") + ", WasComment: "
+						+ (message.has("was_comment") ? message.getBoolean("was_comment") : "N/A") + ", Body: "
 						+ message.getString("body") + ")");
 				fullnamesToMarkAsRead.add(messageFullname);
 				Main.processedMessageFullnames.add(messageFullname);
@@ -94,7 +89,6 @@ public class MentionsManager {
 			}
 
 			body = body.replaceFirst("u/h-counter-bot", "").trim();
-			String targetUser;
 
 			if (body.contains("[self]") || body.contains("\\[self\\]")) {
 				targetUser = author;
@@ -108,8 +102,7 @@ public class MentionsManager {
 							+ ". Cannot get OP. Trying to get parent redditor.");
 					// Decide what targetUser should be in this case, e.g., default or skip
 					targetUser = getParentRedditor(
-							message.has("parent_id") && !message.isNull("parent_id")
-									? message.getString("parent_id")
+							message.has("parent_id") && !message.isNull("parent_id") ? message.getString("parent_id")
 									: null);
 
 				}
@@ -123,13 +116,11 @@ public class MentionsManager {
 				targetUser = targetUser.replaceAll("[^a-zA-Z0-9_-]", "");
 			} else {
 				targetUser = getParentRedditor(
-						message.has("parent_id") && !message.isNull("parent_id")
-								? message.getString("parent_id")
+						message.has("parent_id") && !message.isNull("parent_id") ? message.getString("parent_id")
 								: null);
 			}
 			if (targetUser == null) {
-				System.err.println("Could not determine target user for mention ID: " + messageId
-						+ ". Skipping.");
+				System.err.println("Could not determine target user for mention ID: " + messageId + ". Skipping.");
 				fullnamesToMarkAsRead.add(messageFullname);
 				Main.processedMessageFullnames.add(messageFullname);
 				continue;
@@ -163,7 +154,7 @@ public class MentionsManager {
 					JSONObject itemData = children.getJSONObject(0).getJSONObject("data");
 					if (itemData.has("author")) {
 						String author = itemData.getString("author");
-						if (author.equalsIgnoreCase("[deleted]")) {
+						if (author.equals("[deleted]")) {
 							System.out.println("Author of " + parentId + " is deleted.");
 							return null;
 						}
@@ -173,8 +164,7 @@ public class MentionsManager {
 						return null;
 					}
 				} else {
-					System.err.println("No data found for Reddit ID: " + parentId
-							+ " in API response.");
+					System.err.println("No data found for Reddit ID: " + parentId + " in API response.");
 					return null;
 				}
 
@@ -183,8 +173,7 @@ public class MentionsManager {
 				return null;
 			}
 		} catch (Exception e) {
-			System.err.println("An unexpected error occurred while getting author for Reddit ID " + parentId
-					+ ": "
+			System.err.println("An unexpected error occurred while getting author for Reddit ID " + parentId + ": "
 					+ e.getMessage());
 			e.printStackTrace();
 			return null;
@@ -205,8 +194,7 @@ public class MentionsManager {
 			String postId = parts[4]; // The post_id
 
 			URL url;
-			url = new URI("https://oauth.reddit.com/r/" + subreddit + "/comments/" + postId + "/.json")
-					.toURL();
+			url = new URI("https://oauth.reddit.com/r/" + subreddit + "/comments/" + postId + "/.json").toURL();
 
 			JSONArray jsonArrayResponse;
 			jsonArrayResponse = new JSONArray(HttpUtil.performHttpRequest("GET", url, null, false));
