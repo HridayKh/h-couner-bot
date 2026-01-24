@@ -22,7 +22,6 @@ public class GreetingResource {
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	// @WithSpan("greeting-endpoint")
 	@Blocking
 	public RestResource hello() throws Exception {
 		return postRestClient.getData();
