@@ -1,29 +1,28 @@
 package in.HridayKh;
 
-import io.opentelemetry.instrumentation.annotations.WithSpan;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
+
+import in.HridayKh.hCounterBot.reddit.RedditClient;
 import io.smallrye.common.annotation.Blocking;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-
-import org.eclipse.microprofile.rest.client.inject.RestClient;
-
-import in.HridayKh.testApi.PostRestClient;
-import in.HridayKh.testApi.RestResource;
+import jakarta.ws.rs.core.Response;
 
 @Path("/hello")
 public class GreetingResource {
 
 	@Inject
 	@RestClient
-	PostRestClient postRestClient;
+	RedditClient r;
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Blocking
-	public RestResource hello() throws Exception {
-		return postRestClient.getData();
+	public Response hello() {
+		
+		return Response.ok("Hello World!").build();
 	}
 }

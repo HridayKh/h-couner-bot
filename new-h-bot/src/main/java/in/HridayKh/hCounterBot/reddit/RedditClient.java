@@ -1,15 +1,11 @@
 package in.HridayKh.hCounterBot.reddit;
 
-import java.util.List;
-
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
-import in.HridayKh.hCounterBot.reddit.model.RedditCommentResponse;
-import in.HridayKh.hCounterBot.reddit.model.RedditInfoResponse;
-import in.HridayKh.hCounterBot.reddit.model.RedditPostCommentsResponse;
-import in.HridayKh.hCounterBot.reddit.model.RedditTokenResponse;
-import in.HridayKh.hCounterBot.reddit.model.RedditUnreadMessagesResponse;
-import in.HridayKh.hCounterBot.reddit.model.RedditUserCommentsResponse;
+import in.HridayKh.hCounterBot.reddit.model.PostCommentResponse;
+import in.HridayKh.hCounterBot.reddit.model.TokenResponse;
+import in.HridayKh.hCounterBot.reddit.model.types.RedditListing;
+import in.HridayKh.hCounterBot.reddit.model.types.TypeT1;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.GET;
@@ -24,48 +20,55 @@ import jakarta.ws.rs.core.MediaType;
 @RegisterRestClient(configKey = "reddit-client")
 public interface RedditClient {
 
-    @POST
-    @Path("/api/v1/access_token")
-    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    RedditTokenResponse getAccessToken(@HeaderParam("Authorization") String basicAuth,
-            @FormParam("grant_type") String grantType,
-            @FormParam("username") String username,
-            @FormParam("password") String password);
+	@POST
+	@Path("/api/v1/access_token")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	TokenResponse getAccessToken(@HeaderParam("Authorization") String basicAuth,
+			@HeaderParam("User-Agent") String userAgent,
+			@FormParam("grant_type") String grantType,
+			@FormParam("username") String username,
+			@FormParam("password") String password);
 
-    @POST
-    @Path("/api/comment")
-    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    RedditCommentResponse replyToComment(@HeaderParam("Authorization") String bearerToken,
-            @FormParam("thing_id") String thingId,
-            @FormParam("text") String text,
-            @FormParam("api_type") String apiType);
+	@POST
+	@Path("/api/comment")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	PostCommentResponse replyToComment(@HeaderParam("Authorization") String bearerToken,
+			@HeaderParam("User-Agent") String userAgent,
+			@FormParam("thing_id") String thingId,
+			@FormParam("text") String text,
+			@FormParam("api_type") String apiType);
 
-    @POST
-    @Path("/api/read_message")
-    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    void markMessagesAsRead(@HeaderParam("Authorization") String bearerToken,
-            @FormParam("id") String ids);
+	@POST
+	@Path("/api/read_message")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	void markMessagesAsRead(@HeaderParam("Authorization") String bearerToken,
+			@HeaderParam("User-Agent") String userAgent,
+			@FormParam("id") String ids);
 
-    @GET
-    @Path("/user/{author}/comments/.json")
-    RedditUserCommentsResponse getUserComments(@HeaderParam("Authorization") String bearerToken,
-            @PathParam("author") String author,
-            @QueryParam("limit") int limit,
-            @QueryParam("after") String after);
+	@GET
+	@Path("/user/{author}/comments/.json")
+	RedditListing<TypeT1> getUserComments(@HeaderParam("Authorization") String bearerToken,
+			@HeaderParam("User-Agent") String userAgent,
+			@PathParam("author") String author,
+			@QueryParam("limit") int limit,
+			@QueryParam("after") String after);
 
-    @GET
-    @Path("/message/unread")
-    RedditUnreadMessagesResponse getUnreadMessages(@HeaderParam("Authorization") String bearerToken);
+	@GET
+	@Path("/message/unread")
+	RedditListing<TypeT1> getUnreadMessages(@HeaderParam("Authorization") String bearerToken,@HeaderParam("User-Agent") String userAgent);
 
-    @GET
-    @Path("/api/info.json")
-    RedditInfoResponse getInfo(@HeaderParam("Authorization") String bearerToken,
-            @QueryParam("id") String id);
+	@GET
+	@Path("/api/info")
+	RedditListing<TypeT1> getInfo(@HeaderParam("Authorization") String bearerToken,
+			@HeaderParam("User-Agent") String userAgent,
+			@QueryParam("id") String id);
 
-    @GET
-    @Path("/r/{subreddit}/comments/{postId}/.json")
-    List<RedditPostCommentsResponse> getPostComments(@HeaderParam("Authorization") String bearerToken,
-            @PathParam("subreddit") String subreddit,
-            @PathParam("postId") String postId);
+	@GET
+	@Path("/r/{subreddit}/comments/{postId}/")
+	RedditListing<TypeT1>[] getPostComments(
+			@HeaderParam("Authorization") String bearerToken,
+			@HeaderParam("User-Agent") String userAgent,
+			@PathParam("subreddit") String subreddit,
+			@PathParam("postId") String postId);
 
 }
