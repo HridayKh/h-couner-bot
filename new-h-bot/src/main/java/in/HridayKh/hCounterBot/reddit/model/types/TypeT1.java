@@ -1,27 +1,36 @@
 package in.HridayKh.hCounterBot.reddit.model.types;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TypeT1 {
-	public String id;
-	public String name;
-	public String author;
-	public String author_fullname;
+	public Object first_message;
+	public Object first_message_name;
 	public String subreddit;
-	public String subreddit_id;
-	public String subreddit_name_prefixed;
-	public int score;
-	public int ups;
-	public int downs;
-	public Boolean likes;
-	public Double created;
-	public Double created_utc;
-	public String permalink;
-	public Object distinguished;
-	public String body;
-	public String body_html;
-	public String parent_id;
+	public Object likes;
 	public String replies;
-	public Boolean was_comment;
+	public String author_fullname;
+	public String id;
+	public String subject;
+	public Object associated_awarding_id;
+	public long score;
+	public String author;
+	public long num_comments;
+	public String parent_id;
+	public String subreddit_name_prefixed;
+	@JsonProperty("new")
+	public boolean new_;
+	public String type;
+	public String body;
+	public String link_title;
+	public String dest;
+	public boolean was_comment;
+	public String body_html;
+	public String name;
+	public long created;
+	public long created_utc;
+	public String context;
+	public Object distinguished;
+
 }

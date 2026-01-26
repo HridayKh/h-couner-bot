@@ -7,4 +7,7 @@ public class RedditComment {
 	public String author;
 	public String body;
 	public String type;
+
+	public RedditComment() {
+	}
 }

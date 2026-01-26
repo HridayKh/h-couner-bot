@@ -15,6 +15,6 @@ public class RedditListingData<T> {
 	public int dist;
 	public String modhash;
 	public String geo_filter;
-	public RedditListing<T>[] children;
+	public RedditThing<T>[] children;
 	public String before;
 }

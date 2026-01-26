@@ -1,0 +1,43 @@
+{
+	"kind": "Listing",
+	"data": {
+		"after": null,
+		"dist": 1,
+		"modhash": null,
+		"geo_filter": "",
+		"children": [
+			{
+				"kind": "t1",
+				"data": {
+					"first_message": null,
+					"first_message_name": null,
+					"subreddit": "hcounterbot",
+					"likes": null,
+					"replies": "",
+					"author_fullname": "t2_hcilgiqu",
+					"id": "o1uk9a2",
+					"subject": "username mention",
+					"associated_awarding_id": null,
+					"score": 1,
+					"author": "PROMAN8625",
+					"num_comments": 1,
+					"parent_id": "t3_1qgzdd4",
+					"subreddit_name_prefixed": "r/hcounterbot",
+					"new": true,
+					"type": "username_mention",
+					"body": "u/h-counter-bot",
+					"link_title": "Type a sentence out but replace every letter with H and check out how much you score in u/h-counter-bot",
+					"dest": "h-counter-bot",
+					"was_comment": true,
+					"body_html": "&lt;!-- SC_OFF --&gt;&lt;div class=\"md\"&gt;&lt;p&gt;&lt;a href=\"/u/h-counter-bot\"&gt;u/h-counter-bot&lt;/a&gt;&lt;/p&gt;\n&lt;/div&gt;&lt;!-- SC_ON --&gt;",
+					"name": "t1_o1uk9a2",
+					"created": 1769446568.0,
+					"created_utc": 1769446568.0,
+					"context": "/r/hcounterbot/comments/1qgzdd4/type_a_sentence_out_but_replace_every_letter_with/o1uk9a2/?context=3",
+					"distinguished": null
+				}
+			}
+		],
+		"before": null
+	}
+}

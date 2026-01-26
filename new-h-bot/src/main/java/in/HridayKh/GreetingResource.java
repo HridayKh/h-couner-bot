@@ -2,7 +2,7 @@ package in.HridayKh;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
-import in.HridayKh.hCounterBot.reddit.RedditClient;
+import in.HridayKh.hCounterBot.service.RedditService;
 import io.smallrye.common.annotation.Blocking;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -16,13 +16,12 @@ public class GreetingResource {
 
 	@Inject
 	@RestClient
-	RedditClient r;
+	RedditService r;
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Blocking
 	public Response hello() {
-		
-		return Response.ok("Hello World!").build();
+		return Response.ok(r.getUnreadComments("username_mention")[0].nameId).build();
 	}
 }
