@@ -6,6 +6,7 @@ import in.HridayKh.hCounterBot.reddit.model.PostCommentResponse;
 import in.HridayKh.hCounterBot.reddit.model.TokenResponse;
 import in.HridayKh.hCounterBot.reddit.model.types.RedditListing;
 import in.HridayKh.hCounterBot.reddit.model.types.TypeT1;
+import io.smallrye.mutiny.Uni;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.GET;
@@ -17,7 +18,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 
 @Path("/")
-@RegisterRestClient(configKey = "reddit-client")
+@RegisterRestClient(configKey = "reddit-api")
 public interface RedditClient {
 
 	@POST
@@ -55,7 +56,8 @@ public interface RedditClient {
 
 	@GET
 	@Path("/message/unread")
-	RedditListing<TypeT1> getUnreadMessages(@HeaderParam("Authorization") String bearerToken,@HeaderParam("User-Agent") String userAgent);
+	RedditListing<TypeT1> getUnreadMessages(@HeaderParam("Authorization") String bearerToken,
+			@HeaderParam("User-Agent") String userAgent);
 
 	@GET
 	@Path("/api/info")
