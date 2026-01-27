@@ -8,7 +8,8 @@ import java.util.List;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
-import in.HridayKh.hCounterBot.model.RedditComment;
+import in.HridayKh.hCounterBot.RedditBot;
+import in.HridayKh.hCounterBot.model.RedditMention;
 import in.HridayKh.hCounterBot.reddit.RedditClient;
 import in.HridayKh.hCounterBot.reddit.model.TokenResponse;
 import in.HridayKh.hCounterBot.reddit.model.types.RedditListing;
@@ -29,6 +30,9 @@ public class RedditService {
 	@Inject
 	@RestClient
 	RedditClient redditClient;
+
+	@Inject
+	RedditBot redditBot;
 
 	@ConfigProperty(name = "reddit.user-agent")
 	String userAgent;
@@ -68,8 +72,12 @@ public class RedditService {
 			String botIdSecretBase64 = Base64.getEncoder().encodeToString(botIdSecret.getBytes());
 			String basicAuth = "Basic " + botIdSecretBase64;
 
+			redditBot.waitForRateLimit();
+
 			Response trResponse = redditClient.getAccessToken(basicAuth, userAgent, "password", botUser,
 					botPass);
+
+			redditBot.updateRateLimitInfo(trResponse);
 
 			TokenResponse tr = trResponse.readEntity(new GenericType<TokenResponse>() {
 			});
@@ -92,7 +100,7 @@ public class RedditService {
 	}
 
 	@WithSpan("redditService.comments.getUnread")
-	public RedditComment[] getUnreadComments(String filterCommentType) {
+	public RedditMention[] getUnreadComments(String filterCommentType) {
 		Span.current().setAttribute("reddit.filter_type", filterCommentType);
 		Log.infof("Fetching unread messages from Reddit (filter: %s)", filterCommentType);
 
@@ -102,6 +110,9 @@ public class RedditService {
 				throw new RuntimeException("Reddit Bearer Token is Null!");
 
 			Response unreadMessagesResponse = redditClient.getUnreadMessages(token, userAgent);
+			redditBot.waitForRateLimit();
+
+			redditBot.updateRateLimitInfo(unreadMessagesResponse);
 
 			RedditListing<TypeT1> listing = unreadMessagesResponse
 					.readEntity(new GenericType<RedditListing<TypeT1>>() {
@@ -111,7 +122,7 @@ public class RedditService {
 			Span.current().setAttribute("reddit.items_received", children.length);
 			Log.info("processing_unread_comments");
 
-			List<RedditComment> comments = new ArrayList<>();
+			List<RedditMention> comments = new ArrayList<>();
 			for (RedditThing<TypeT1> child : children) {
 				TypeT1 comment = child.data;
 
@@ -123,16 +134,16 @@ public class RedditService {
 				String[] contextParts = comment.context.split("/");
 				String postId = contextParts.length > 4 ? contextParts[4] : "unknown";
 
-				comments.add(new RedditComment(
+				comments.add(new RedditMention(
 						postId, comment.parent_id, comment.name, comment.author,
-						comment.body, comment.type));
+						comment.body));
 			}
 
 			Span.current().setAttribute("reddit.items_matched", comments.size());
 			Log.infof("Processed %d unread comments", comments.size());
 			Log.info("processing_unread_comments_completed");
 
-			return comments.toArray(new RedditComment[0]);
+			return comments.toArray(new RedditMention[0]);
 
 		} catch (Exception e) {
 			Log.errorf(e, "Error fetching unread comments for type: %s", filterCommentType);

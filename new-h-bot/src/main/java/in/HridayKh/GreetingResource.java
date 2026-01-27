@@ -1,6 +1,6 @@
 package in.HridayKh;
 
-import in.HridayKh.hCounterBot.model.RedditComment;
+import in.HridayKh.hCounterBot.model.RedditMention;
 import in.HridayKh.hCounterBot.service.RedditService;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import io.smallrye.common.annotation.Blocking;
@@ -20,8 +20,8 @@ public class GreetingResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Blocking
 	@WithSpan
-	public RedditComment[] hello() {
-		RedditComment[] result = rs.getUnreadComments("username_mention");
+	public RedditMention[] hello() {
+		RedditMention[] result = rs.getUnreadComments("username_mention");
 		return result;
 	}
 }

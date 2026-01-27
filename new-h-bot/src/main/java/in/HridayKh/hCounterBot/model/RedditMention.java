@@ -1,20 +1,18 @@
 package in.HridayKh.hCounterBot.model;
 
-public class RedditComment {
+public class RedditMention {
 	private String postId;
 	private String parentId;
 	private String nameId;
 	private String author;
 	private String body;
-	private String type;
 
-	public RedditComment(String postId, String parentId, String nameId, String author, String body, String type) {
+	public RedditMention(String postId, String parentId, String nameId, String author, String body) {
 		this.postId = postId;
 		this.parentId = parentId;
 		this.nameId = nameId;
 		this.author = author;
 		this.body = body;
-		this.type = type;
 	}
 
 	public String getPostId() {
@@ -37,18 +35,13 @@ public class RedditComment {
 		return body;
 	}
 
-	public String getType() {
-		return type;
-	}
-
 	public String toString() {
-		return "RedditComment{" +
+		return "RedditMention{" +
 				"postId='" + postId + '\'' +
 				", parentId='" + parentId + '\'' +
 				", nameId='" + nameId + '\'' +
 				", author='" + author + '\'' +
 				", body='" + body + '\'' +
-				", type='" + type + '\'' +
 				'}';
 	}
 }

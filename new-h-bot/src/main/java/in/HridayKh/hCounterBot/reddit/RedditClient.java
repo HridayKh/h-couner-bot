@@ -2,10 +2,6 @@ package in.HridayKh.hCounterBot.reddit;
 
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
-import in.HridayKh.hCounterBot.reddit.model.PostCommentResponse;
-import in.HridayKh.hCounterBot.reddit.model.TokenResponse;
-import in.HridayKh.hCounterBot.reddit.model.types.RedditListing;
-import in.HridayKh.hCounterBot.reddit.model.types.TypeT1;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.GET;
@@ -47,7 +43,7 @@ public interface RedditClient {
 			@FormParam("id") String ids);
 
 	@GET
-	@Path("/user/{author}/comments/.json")
+	@Path("/user/{author}/comments")
 	Response getUserComments(@HeaderParam("Authorization") String bearerToken,
 			@HeaderParam("User-Agent") String userAgent,
 			@PathParam("author") String author,
@@ -67,7 +63,7 @@ public interface RedditClient {
 
 	@GET
 	@Path("/r/{subreddit}/comments/{postId}/")
-	Response getPostComments(
+	Response getPost(
 			@HeaderParam("Authorization") String bearerToken,
 			@HeaderParam("User-Agent") String userAgent,
 			@PathParam("subreddit") String subreddit,
