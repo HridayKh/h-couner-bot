@@ -19,7 +19,7 @@ public class GreetingResource {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Blocking
-	@WithSpan("GET /hello")
+	@WithSpan
 	public RedditComment[] hello() {
 		RedditComment[] result = rs.getUnreadComments("username_mention");
 		return result;

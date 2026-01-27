@@ -20,6 +20,8 @@ import io.opentelemetry.instrumentation.annotations.WithSpan;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.Response;
 
 @ApplicationScoped
 public class RedditService {
@@ -50,7 +52,8 @@ public class RedditService {
 	String handleToken() {
 		long fiveMinutesFromNow = System.currentTimeMillis() + Duration.ofMinutes(5).toMillis();
 
-		System.out.println("Token Expiry: " + tokenExpiry + ", Current Time: " + System.currentTimeMillis() + ", Five Minutes From Now: " + fiveMinutesFromNow);
+		System.out.println("Token Expiry: " + tokenExpiry + ", Current Time: " + System.currentTimeMillis()
+				+ ", Five Minutes From Now: " + fiveMinutesFromNow);
 
 		if (bearerToken != null && !bearerToken.isBlank() && tokenExpiry > fiveMinutesFromNow) {
 			Log.info("token_valid");
@@ -65,7 +68,11 @@ public class RedditService {
 			String botIdSecretBase64 = Base64.getEncoder().encodeToString(botIdSecret.getBytes());
 			String basicAuth = "Basic " + botIdSecretBase64;
 
-			TokenResponse tr = redditClient.getAccessToken(basicAuth, userAgent, "password", botUser, botPass);
+			Response trResponse = redditClient.getAccessToken(basicAuth, userAgent, "password", botUser,
+					botPass);
+
+			TokenResponse tr = trResponse.readEntity(new GenericType<TokenResponse>() {
+			});
 
 			this.bearerToken = "Bearer " + tr.getAccessToken();
 			this.tokenExpiry = System.currentTimeMillis()
@@ -94,7 +101,11 @@ public class RedditService {
 			if (token == null)
 				throw new RuntimeException("Reddit Bearer Token is Null!");
 
-			RedditListing<TypeT1> listing = redditClient.getUnreadMessages(token, userAgent);
+			Response unreadMessagesResponse = redditClient.getUnreadMessages(token, userAgent);
+
+			RedditListing<TypeT1> listing = unreadMessagesResponse
+					.readEntity(new GenericType<RedditListing<TypeT1>>() {
+					});
 
 			RedditThing<TypeT1>[] children = listing.data.children;
 			Span.current().setAttribute("reddit.items_received", children.length);

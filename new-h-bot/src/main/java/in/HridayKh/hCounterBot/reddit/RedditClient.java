@@ -6,7 +6,6 @@ import in.HridayKh.hCounterBot.reddit.model.PostCommentResponse;
 import in.HridayKh.hCounterBot.reddit.model.TokenResponse;
 import in.HridayKh.hCounterBot.reddit.model.types.RedditListing;
 import in.HridayKh.hCounterBot.reddit.model.types.TypeT1;
-import io.smallrye.mutiny.Uni;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.GET;
@@ -16,6 +15,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 @Path("/")
 @RegisterRestClient(configKey = "reddit-api")
@@ -24,7 +24,7 @@ public interface RedditClient {
 	@POST
 	@Path("/api/v1/access_token")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	TokenResponse getAccessToken(@HeaderParam("Authorization") String basicAuth,
+	Response getAccessToken(@HeaderParam("Authorization") String basicAuth,
 			@HeaderParam("User-Agent") String userAgent,
 			@FormParam("grant_type") String grantType,
 			@FormParam("username") String username,
@@ -33,7 +33,7 @@ public interface RedditClient {
 	@POST
 	@Path("/api/comment")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	PostCommentResponse replyToComment(@HeaderParam("Authorization") String bearerToken,
+	Response replyToComment(@HeaderParam("Authorization") String bearerToken,
 			@HeaderParam("User-Agent") String userAgent,
 			@FormParam("thing_id") String thingId,
 			@FormParam("text") String text,
@@ -42,13 +42,13 @@ public interface RedditClient {
 	@POST
 	@Path("/api/read_message")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	void markMessagesAsRead(@HeaderParam("Authorization") String bearerToken,
+	Response markMessagesAsRead(@HeaderParam("Authorization") String bearerToken,
 			@HeaderParam("User-Agent") String userAgent,
 			@FormParam("id") String ids);
 
 	@GET
 	@Path("/user/{author}/comments/.json")
-	RedditListing<TypeT1> getUserComments(@HeaderParam("Authorization") String bearerToken,
+	Response getUserComments(@HeaderParam("Authorization") String bearerToken,
 			@HeaderParam("User-Agent") String userAgent,
 			@PathParam("author") String author,
 			@QueryParam("limit") int limit,
@@ -56,18 +56,18 @@ public interface RedditClient {
 
 	@GET
 	@Path("/message/unread")
-	RedditListing<TypeT1> getUnreadMessages(@HeaderParam("Authorization") String bearerToken,
+	Response getUnreadMessages(@HeaderParam("Authorization") String bearerToken,
 			@HeaderParam("User-Agent") String userAgent);
 
 	@GET
 	@Path("/api/info")
-	RedditListing<TypeT1> getInfo(@HeaderParam("Authorization") String bearerToken,
+	Response getInfo(@HeaderParam("Authorization") String bearerToken,
 			@HeaderParam("User-Agent") String userAgent,
 			@QueryParam("id") String id);
 
 	@GET
 	@Path("/r/{subreddit}/comments/{postId}/")
-	RedditListing<TypeT1>[] getPostComments(
+	Response getPostComments(
 			@HeaderParam("Authorization") String bearerToken,
 			@HeaderParam("User-Agent") String userAgent,
 			@PathParam("subreddit") String subreddit,
