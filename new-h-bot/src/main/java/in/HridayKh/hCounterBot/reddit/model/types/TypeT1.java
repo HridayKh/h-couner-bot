@@ -9,7 +9,7 @@ public class TypeT1 {
 	public Object first_message_name;
 	public String subreddit;
 	public Object likes;
-	public String replies;
+	public Object replies;
 	public String author_fullname;
 	public String id;
 	public String subject;
@@ -24,7 +24,7 @@ public class TypeT1 {
 	public String type;
 	public String body;
 	public String link_title;
-	public String dest;
+	public Object dest;
 	public boolean was_comment;
 	public String body_html;
 	public String name;

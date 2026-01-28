@@ -10,7 +10,6 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import in.HridayKh.hCounterBot.model.RedditMention;
 import in.HridayKh.hCounterBot.reddit.RedditClient;
-import in.HridayKh.hCounterBot.reddit.bot.BotRunner;
 import in.HridayKh.hCounterBot.reddit.model.TokenResponse;
 import in.HridayKh.hCounterBot.reddit.model.types.RedditListing;
 import in.HridayKh.hCounterBot.reddit.model.types.RedditThing;
@@ -30,9 +29,6 @@ public class RedditService {
 	@Inject
 	@RestClient
 	RedditClient redditClient;
-
-	@Inject
-	BotRunner redditBot;
 
 	@ConfigProperty(name = "reddit.user-agent")
 	String userAgent;
@@ -55,9 +51,6 @@ public class RedditService {
 	@WithSpan("redditService.auth.handleToken")
 	String handleToken() {
 		long fiveMinutesFromNow = System.currentTimeMillis() + Duration.ofMinutes(5).toMillis();
-
-		System.out.println("Token Expiry: " + tokenExpiry + ", Current Time: " + System.currentTimeMillis()
-				+ ", Five Minutes From Now: " + fiveMinutesFromNow);
 
 		if (bearerToken != null && !bearerToken.isBlank() && tokenExpiry > fiveMinutesFromNow) {
 			Log.info("token_valid");
@@ -96,10 +89,48 @@ public class RedditService {
 		}
 	}
 
+	@WithSpan("redditService.rateLimit.waitAndUpdate")
+	void WaitForAndUpdateRateLimit(Response response) {
+		String remainingStr = response.getHeaderString("x-ratelimit-remaining");
+		String resetStr = response.getHeaderString("x-ratelimit-reset");
+		long remainingRateLimitCallsRemaining = 1L;
+		long remainingRateLimitResetTime = 1L;
+		if (remainingStr != null) {
+			try {
+				remainingRateLimitCallsRemaining = (int) Float.parseFloat(remainingStr);
+			} catch (NumberFormatException e) {
+				Log.warn("Failed to parse x-ratelimit-remaining: " + remainingStr, e);
+				Span.current().setStatus(StatusCode.ERROR, "Failed to parse x-ratelimit-remaining");
+				Span.current().recordException(e);
+			}
+		}
+		if (resetStr != null) {
+			try {
+				remainingRateLimitResetTime = (int) Float.parseFloat(resetStr);
+			} catch (NumberFormatException e) {
+				Log.warn("Failed to parse x-ratelimit-reset: " + resetStr, e);
+				Span.current().setStatus(StatusCode.ERROR, "Failed to parse x-ratelimit-remaining");
+				Span.current().recordException(e);
+			}
+		}
+
+		long remainingTimePerCallSeconds = remainingRateLimitResetTime / remainingRateLimitCallsRemaining;
+		long extraBufferMillis = 10L;
+		long waitTimeMillis = (remainingTimePerCallSeconds * 1000L) + extraBufferMillis;
+		Log.info(remainingTimePerCallSeconds);
+		Log.infof("Remaining Calls: %d, Reset Time (s): %d, Waiting time: %d ms",
+				remainingRateLimitCallsRemaining, remainingRateLimitResetTime, waitTimeMillis);
+
+		try {
+			Thread.sleep(waitTimeMillis);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+	}
+
 	@WithSpan("redditService.comments.getUnread")
-	public RedditMention[] getUnreadComments(String filterCommentType) {
-		Span.current().setAttribute("reddit.filter_type", filterCommentType);
-		Log.infof("Fetching unread messages from Reddit (filter: %s)", filterCommentType);
+	public RedditMention[] getUnreadComments() {
+		Log.infof("Fetching unread messages from Reddit");
 
 		try {
 			String token = handleToken();
@@ -107,7 +138,7 @@ public class RedditService {
 				throw new RuntimeException("Reddit Bearer Token is Null!");
 
 			Response unreadMessagesResponse = redditClient.getUnreadMessages(token, userAgent);
-			redditBot.WaitForAndUpdateRateLimit(unreadMessagesResponse);
+			WaitForAndUpdateRateLimit(unreadMessagesResponse);
 
 			RedditListing<TypeT1> listing = unreadMessagesResponse
 					.readEntity(new GenericType<RedditListing<TypeT1>>() {
@@ -115,16 +146,14 @@ public class RedditService {
 
 			RedditThing<TypeT1>[] children = listing.data.children;
 			Span.current().setAttribute("reddit.items_received", children.length);
-			Log.info("processing_unread_comments");
+			Log.infof("processing %d unread_comments", children.length);
 
 			List<RedditMention> comments = new ArrayList<>();
 			for (RedditThing<TypeT1> child : children) {
 				TypeT1 comment = child.data;
 
-				if (comment.type == null || !comment.was_comment
-						|| !comment.type.equals(filterCommentType)) {
+				if (!comment.was_comment || !comment.body.toLowerCase().contains("u/h-counter-bot"))
 					continue;
-				}
 
 				String[] contextParts = comment.context.split("/");
 				String postId = contextParts.length > 4 ? contextParts[4] : "unknown";
@@ -134,8 +163,7 @@ public class RedditService {
 
 				comments.add(new RedditMention(
 						postId, comment.subreddit, comment.parent_id, comment.name,
-						author,
-						comment.body));
+						author, comment.body));
 			}
 
 			Span.current().setAttribute("reddit.items_matched", comments.size());
@@ -145,7 +173,7 @@ public class RedditService {
 			return comments.toArray(new RedditMention[0]);
 
 		} catch (Exception e) {
-			Log.errorf(e, "Error fetching unread comments for type: %s", filterCommentType);
+			Log.errorf(e, "Error fetching unread comments");
 			Span.current().recordException(e);
 			Span.current().setStatus(StatusCode.ERROR, e.getMessage());
 			throw e;
@@ -155,21 +183,19 @@ public class RedditService {
 	@WithSpan("redditService.targetUser.identifier.getPostOp")
 	public String getPostOp(String subreddit, String postId) {
 		Span.current().setAttribute("reddit.post_id", postId);
-		Log.infof("Fetching OP username for post: %s", postId);
+		Log.infof("Fetching OP username for post: r/%s/%s", subreddit, postId);
 		try {
 			String token = handleToken();
 			if (token == null)
 				throw new RuntimeException("Reddit Bearer Token is Null!");
 			Response postResponse = redditClient.getPost(token, userAgent, subreddit, postId);
-			redditBot.WaitForAndUpdateRateLimit(postResponse);
+			WaitForAndUpdateRateLimit(postResponse);
 
-			// returned is an array with first item listing of post (t3)
-			// and second item listing of comments (t1)
-			RedditListing<TypeT1> postListing = postResponse
+			RedditListing<TypeT1>[] postListing = postResponse
 					.readEntity(new GenericType<RedditListing<TypeT1>[]>() {
-					})[0];
+					});
 
-			String author = postListing.data.children[0].data.author.toLowerCase();
+			String author = postListing[0].data.children[0].data.author.toLowerCase();
 			Log.infof("Fetched OP username for post %s: %s", postId, author);
 
 			return author.startsWith("u/") ? author.substring(2) : author;
@@ -185,15 +211,13 @@ public class RedditService {
 	@WithSpan("redditService.targetUser.identifier.getParentRedditor")
 	public String getParentRedditor(String parentId) {
 		Span.current().setAttribute("reddit.parent_id", parentId);
-		Log.infof("Fetching OP username for parent: %s", parentId);
+		Log.infof("Fetching username for parent: %s", parentId);
 		try {
 			String token = handleToken();
 			if (token == null)
 				throw new RuntimeException("Reddit Bearer Token is Null!");
 			Response postResponse = redditClient.getInfo(token, userAgent, parentId);
-			redditBot.WaitForAndUpdateRateLimit(postResponse);
-
-			parentId = parentId.startsWith("t1_") ? parentId : "t1_" + parentId;
+			WaitForAndUpdateRateLimit(postResponse);
 
 			RedditListing<TypeT1> infoListing = postResponse
 					.readEntity(new GenericType<RedditListing<TypeT1>>() {
@@ -201,11 +225,11 @@ public class RedditService {
 
 			String author = infoListing.data.children[0].data.author.toLowerCase();
 
-			Log.infof("Fetched OP username for parent %s: %s", parentId, author);
+			Log.infof("Fetched username for parent %s: %s", parentId, author);
 			return author.startsWith("u/") ? author.substring(2) : author;
 
 		} catch (Exception e) {
-			Log.errorf(e, "Error fetching OP username for parent: %s", parentId);
+			Log.errorf(e, "Error fetching username for parent: %s", parentId);
 			Span.current().recordException(e);
 			Span.current().setStatus(StatusCode.ERROR, e.getMessage());
 			throw e;
@@ -213,7 +237,7 @@ public class RedditService {
 	}
 
 	@WithSpan("redditService.targetUser.getUserCommentsBodies")
-	public String[] getUserCommentsBodies(String username, String nesestScannedCommentId) {
+	public String[] getUserCommentsBodies(String username, String newestScannedCommentId) {
 		Span.current().setAttribute("reddit.target_username", username);
 		Log.infof("Fetching comments for user: %s", username);
 		try {
@@ -222,7 +246,7 @@ public class RedditService {
 				throw new RuntimeException("Reddit Bearer Token is Null!");
 
 			List<String> commentsBodies = new ArrayList<>();
-			String before = nesestScannedCommentId == null ? "" : nesestScannedCommentId;
+			String before = newestScannedCommentId == null ? "" : newestScannedCommentId;
 			before = before.toLowerCase().startsWith("t1_") || before.isBlank() ? before : "t1_" + before;
 
 			int redditMaxLimit = 100;
@@ -238,7 +262,7 @@ public class RedditService {
 
 				Response response = redditClient.getUserComments(token, userAgent, username,
 						redditMaxLimit, "", currentAfter);
-				redditBot.WaitForAndUpdateRateLimit(response);
+				WaitForAndUpdateRateLimit(response);
 
 				RedditListing<TypeT1> listing = response
 						.readEntity(new GenericType<RedditListing<TypeT1>>() {
@@ -251,7 +275,7 @@ public class RedditService {
 					if (commentsBodies.size() < 1)
 						commentsBodies.add(child.data.name);
 
-					if (child.data.name.equals(nesestScannedCommentId)) {
+					if (child.data.name.equals(newestScannedCommentId)) {
 						foundScannedComment = true;
 						break;
 					}
@@ -285,7 +309,7 @@ public class RedditService {
 
 			Response replyResponse = redditClient.replyToComment(token, userAgent, parentCommentId,
 					replyText, "json");
-			redditBot.WaitForAndUpdateRateLimit(replyResponse);
+			WaitForAndUpdateRateLimit(replyResponse);
 
 			Log.infof("Replied to comment %s successfully.", parentCommentId);
 		} catch (Exception e) {
@@ -294,5 +318,24 @@ public class RedditService {
 			Span.current().setStatus(StatusCode.ERROR, e.getMessage());
 			throw new RuntimeException("Failed to reply to comment: " + parentCommentId, e);
 		}
+	}
+
+	@WithSpan("redditService.comments.markMentionsAsRead")
+	public void markMentionsAsRead(String[] mentionsToBeMarkedRead) {
+		StringBuilder sb = new StringBuilder();
+		for (String mentionId : mentionsToBeMarkedRead) {
+			if (sb.length() > 0)
+				sb.append(", ");
+			sb.append(mentionId);
+		}
+		Log.infof("Marking mentions as read: %s", sb.toString());
+
+		String token = handleToken();
+		if (token == null)
+			throw new RuntimeException("Reddit Bearer Token is Null!");
+
+		Response response = redditClient.markMessagesAsRead(token, userAgent, sb.toString());
+		WaitForAndUpdateRateLimit(response);
+		Log.info("Marked mentions as read successfully.");
 	}
 }
