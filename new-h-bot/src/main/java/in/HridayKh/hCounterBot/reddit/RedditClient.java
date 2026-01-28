@@ -26,6 +26,34 @@ public interface RedditClient {
 			@FormParam("username") String username,
 			@FormParam("password") String password);
 
+	@GET
+	@Path("/message/unread")
+	Response getUnreadMessages(@HeaderParam("Authorization") String bearerToken,
+			@HeaderParam("User-Agent") String userAgent);
+
+	@GET
+	@Path("/r/{subreddit}/comments/{postId}/")
+	Response getPost(
+			@HeaderParam("Authorization") String bearerToken,
+			@HeaderParam("User-Agent") String userAgent,
+			@PathParam("subreddit") String subreddit,
+			@PathParam("postId") String postId);
+
+	@GET
+	@Path("/api/info")
+	Response getInfo(@HeaderParam("Authorization") String bearerToken,
+			@HeaderParam("User-Agent") String userAgent,
+			@QueryParam("id") String id);
+
+	@GET
+	@Path("/user/{author}/comments")
+	Response getUserComments(@HeaderParam("Authorization") String bearerToken,
+			@HeaderParam("User-Agent") String userAgent,
+			@PathParam("author") String author,
+			@QueryParam("limit") int limit,
+			@QueryParam("before") String before,
+			@QueryParam("after") String after);
+
 	@POST
 	@Path("/api/comment")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -39,34 +67,9 @@ public interface RedditClient {
 	@Path("/api/read_message")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	Response markMessagesAsRead(@HeaderParam("Authorization") String bearerToken,
+
 			@HeaderParam("User-Agent") String userAgent,
+
 			@FormParam("id") String ids);
-
-	@GET
-	@Path("/user/{author}/comments")
-	Response getUserComments(@HeaderParam("Authorization") String bearerToken,
-			@HeaderParam("User-Agent") String userAgent,
-			@PathParam("author") String author,
-			@QueryParam("limit") int limit,
-			@QueryParam("after") String after);
-
-	@GET
-	@Path("/message/unread")
-	Response getUnreadMessages(@HeaderParam("Authorization") String bearerToken,
-			@HeaderParam("User-Agent") String userAgent);
-
-	@GET
-	@Path("/api/info")
-	Response getInfo(@HeaderParam("Authorization") String bearerToken,
-			@HeaderParam("User-Agent") String userAgent,
-			@QueryParam("id") String id);
-
-	@GET
-	@Path("/r/{subreddit}/comments/{postId}/")
-	Response getPost(
-			@HeaderParam("Authorization") String bearerToken,
-			@HeaderParam("User-Agent") String userAgent,
-			@PathParam("subreddit") String subreddit,
-			@PathParam("postId") String postId);
 
 }

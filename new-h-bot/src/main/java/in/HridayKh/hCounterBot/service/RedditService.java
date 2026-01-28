@@ -74,10 +74,9 @@ public class RedditService {
 
 			redditBot.waitForRateLimit();
 
+			// does not count towards reddit rate limit
 			Response trResponse = redditClient.getAccessToken(basicAuth, userAgent, "password", botUser,
 					botPass);
-
-			redditBot.updateRateLimitInfo(trResponse);
 
 			TokenResponse tr = trResponse.readEntity(new GenericType<TokenResponse>() {
 			});
@@ -110,9 +109,7 @@ public class RedditService {
 				throw new RuntimeException("Reddit Bearer Token is Null!");
 
 			Response unreadMessagesResponse = redditClient.getUnreadMessages(token, userAgent);
-			redditBot.waitForRateLimit();
-
-			redditBot.updateRateLimitInfo(unreadMessagesResponse);
+			redditBot.WaitForAndUpdateRateLimit(unreadMessagesResponse);
 
 			RedditListing<TypeT1> listing = unreadMessagesResponse
 					.readEntity(new GenericType<RedditListing<TypeT1>>() {
@@ -134,8 +131,12 @@ public class RedditService {
 				String[] contextParts = comment.context.split("/");
 				String postId = contextParts.length > 4 ? contextParts[4] : "unknown";
 
+				String author = comment.author;
+				author = author.startsWith("u/") ? author.substring(2) : author;
+
 				comments.add(new RedditMention(
-						postId, comment.parent_id, comment.name, comment.author,
+						postId, comment.subreddit, comment.parent_id, comment.name,
+						author,
 						comment.body));
 			}
 
@@ -147,6 +148,130 @@ public class RedditService {
 
 		} catch (Exception e) {
 			Log.errorf(e, "Error fetching unread comments for type: %s", filterCommentType);
+			Span.current().recordException(e);
+			Span.current().setStatus(StatusCode.ERROR, e.getMessage());
+			throw e;
+		}
+	}
+
+	@WithSpan("redditService.targetUser.identifier.getPostOp")
+	public String getPostOp(String subreddit, String postId) {
+		Span.current().setAttribute("reddit.post_id", postId);
+		Log.infof("Fetching OP username for post: %s", postId);
+		try {
+			String token = handleToken();
+			if (token == null)
+				throw new RuntimeException("Reddit Bearer Token is Null!");
+			Response postResponse = redditClient.getPost(token, userAgent, subreddit, postId);
+			redditBot.WaitForAndUpdateRateLimit(postResponse);
+
+			// returned is an array with first item listing of post (t3)
+			// and second item listing of comments (t1)
+			RedditListing<TypeT1> postListing = postResponse
+					.readEntity(new GenericType<RedditListing<TypeT1>[]>() {
+					})[0];
+
+			String author = postListing.data.children[0].data.author.toLowerCase();
+			Log.infof("Fetched OP username for post %s: %s", postId, author);
+
+			return author.startsWith("u/") ? author.substring(2) : author;
+
+		} catch (Exception e) {
+			Log.errorf(e, "Error fetching OP username for post: %s", postId);
+			Span.current().recordException(e);
+			Span.current().setStatus(StatusCode.ERROR, e.getMessage());
+			throw e;
+		}
+	}
+
+	@WithSpan("redditService.targetUser.identifier.getParentRedditor")
+	public String getParentRedditor(String parentId) {
+		Span.current().setAttribute("reddit.parent_id", parentId);
+		Log.infof("Fetching OP username for parent: %s", parentId);
+		try {
+			String token = handleToken();
+			if (token == null)
+				throw new RuntimeException("Reddit Bearer Token is Null!");
+			Response postResponse = redditClient.getInfo(token, userAgent, parentId);
+			redditBot.WaitForAndUpdateRateLimit(postResponse);
+
+			parentId = parentId.startsWith("t1_") ? parentId : "t1_" + parentId;
+
+			RedditListing<TypeT1> infoListing = postResponse
+					.readEntity(new GenericType<RedditListing<TypeT1>>() {
+					});
+
+			String author = infoListing.data.children[0].data.author.toLowerCase();
+
+			Log.infof("Fetched OP username for parent %s: %s", parentId, author);
+			return author.startsWith("u/") ? author.substring(2) : author;
+
+		} catch (Exception e) {
+			Log.errorf(e, "Error fetching OP username for parent: %s", parentId);
+			Span.current().recordException(e);
+			Span.current().setStatus(StatusCode.ERROR, e.getMessage());
+			throw e;
+		}
+	}
+
+	@WithSpan("redditService.targetUser.getUserCommentsBodies")
+	public String[] getUserCommentsBodies(String username, String nesestScannedCommentId) {
+		Span.current().setAttribute("reddit.target_username", username);
+		Log.infof("Fetching comments for user: %s", username);
+		try {
+			String token = handleToken();
+			if (token == null)
+				throw new RuntimeException("Reddit Bearer Token is Null!");
+
+			List<String> commentsBodies = new ArrayList<>();
+			String before = nesestScannedCommentId == null ? "" : nesestScannedCommentId;
+			before = before.toLowerCase().startsWith("t1_") || before.isBlank() ? before : "t1_" + before;
+
+			int redditMaxLimit = 100;
+			int maxPagesPerUser = 10;
+
+			int pages = 0;
+			String currentAfter = "";
+			boolean foundScannedComment = false;
+			while (!foundScannedComment) {
+				// only apply the comment limit if we are noo scanning after a scanned comment
+				if (before.isBlank() && pages >= maxPagesPerUser)
+					break;
+
+				Response response = redditClient.getUserComments(token, userAgent, username,
+						redditMaxLimit, "", currentAfter);
+				redditBot.WaitForAndUpdateRateLimit(response);
+
+				RedditListing<TypeT1> listing = response
+						.readEntity(new GenericType<RedditListing<TypeT1>>() {
+						});
+
+				if (listing.data.children == null || listing.data.children.length == 0)
+					break;
+
+				for (RedditThing<TypeT1> child : listing.data.children) {
+					if (commentsBodies.size() < 1)
+						commentsBodies.add(child.data.name);
+
+					if (child.data.name.equals(nesestScannedCommentId)) {
+						foundScannedComment = true;
+						break;
+					}
+
+					commentsBodies.add(child.data.body);
+				}
+				currentAfter = listing.data.after;
+				pages++;
+
+				if (currentAfter == null || currentAfter.isBlank())
+					break;
+			}
+
+			Log.infof("Fetched %d comments for user: %s", commentsBodies.size() - 1, username);
+			return commentsBodies.toArray(new String[0]);
+
+		} catch (Exception e) {
+			Log.errorf(e, "Error fetching comments for user: %s", username);
 			Span.current().recordException(e);
 			Span.current().setStatus(StatusCode.ERROR, e.getMessage());
 			throw e;
