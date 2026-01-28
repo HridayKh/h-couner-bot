@@ -8,9 +8,9 @@ import java.util.List;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
-import in.HridayKh.hCounterBot.RedditBot;
 import in.HridayKh.hCounterBot.model.RedditMention;
 import in.HridayKh.hCounterBot.reddit.RedditClient;
+import in.HridayKh.hCounterBot.reddit.bot.BotRunner;
 import in.HridayKh.hCounterBot.reddit.model.TokenResponse;
 import in.HridayKh.hCounterBot.reddit.model.types.RedditListing;
 import in.HridayKh.hCounterBot.reddit.model.types.RedditThing;
@@ -32,7 +32,7 @@ public class RedditService {
 	RedditClient redditClient;
 
 	@Inject
-	RedditBot redditBot;
+	BotRunner redditBot;
 
 	@ConfigProperty(name = "reddit.user-agent")
 	String userAgent;
@@ -71,8 +71,6 @@ public class RedditService {
 			String botIdSecret = botId + ":" + botSecret;
 			String botIdSecretBase64 = Base64.getEncoder().encodeToString(botIdSecret.getBytes());
 			String basicAuth = "Basic " + botIdSecretBase64;
-
-			redditBot.waitForRateLimit();
 
 			// does not count towards reddit rate limit
 			Response trResponse = redditClient.getAccessToken(basicAuth, userAgent, "password", botUser,
@@ -275,6 +273,26 @@ public class RedditService {
 			Span.current().recordException(e);
 			Span.current().setStatus(StatusCode.ERROR, e.getMessage());
 			throw e;
+		}
+	}
+
+	@WithSpan("redditService.comments.replyToComment")
+	public void replyToComment(String parentCommentId, String replyText) {
+		try {
+			String token = handleToken();
+			if (token == null)
+				throw new RuntimeException("Reddit Bearer Token is Null!");
+
+			Response replyResponse = redditClient.replyToComment(token, userAgent, parentCommentId,
+					replyText, "json");
+			redditBot.WaitForAndUpdateRateLimit(replyResponse);
+
+			Log.infof("Replied to comment %s successfully.", parentCommentId);
+		} catch (Exception e) {
+			Log.errorf(e, "Error replying to comment: %s", parentCommentId);
+			Span.current().recordException(e);
+			Span.current().setStatus(StatusCode.ERROR, e.getMessage());
+			throw new RuntimeException("Failed to reply to comment: " + parentCommentId, e);
 		}
 	}
 }

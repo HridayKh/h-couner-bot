@@ -1,4 +1,4 @@
-package in.HridayKh.hCounterBot;
+package in.HridayKh.hCounterBot.reddit.bot;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
@@ -18,10 +18,12 @@ import in.HridayKh.hCounterBot.model.RedditMention;
 import in.HridayKh.hCounterBot.service.RedditService;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 @ApplicationScoped
-public class RedditBot {
-	private static final Logger LOG = Logger.getLogger(RedditBot.class);
+public class BotRunner {
+	private static final Logger LOG = Logger.getLogger(BotRunner.class);
 
 	private volatile boolean running = true;
 
@@ -71,6 +73,8 @@ public class RedditBot {
 	protected void executeIteration() {
 		RedditMention[] unreadMentions = redditService.getUnreadComments("username_mention");
 
+		List<String> mentionsToMarkRead = new ArrayList<>();
+
 		for (RedditMention mention : unreadMentions) {
 			// sometimes comment replies used to be fetched as mentions in old verisons
 			// verify for sanity even though not needed
@@ -105,9 +109,6 @@ public class RedditBot {
 			}
 			String newNewestScannedCommentId = bodies[0]; // TODO store it
 
-			int totalComments = bodies.length - 1;
-			double hScore = 0;
-
 			long totalChars = 0;
 			long totalH = 0;
 			for (int i = 1; i < bodies.length; i++) {
@@ -116,11 +117,29 @@ public class RedditBot {
 				totalH += comment.length() - comment.toLowerCase().replace("h", "").length();
 			}
 
-			hScore = totalChars == 0 ? 0 : (double) totalH / (totalChars - totalH);
+			long nonH = totalChars - totalH;
+			double hScore = nonH == 0 ? Double.MAX_VALUE : (double) totalH / nonH;
+			int totalComments = bodies.length - 1;
+
+			String replyMessage = String.format(
+					"Hi u/%s! Here are the h-counter stats for u/%s:\n\n" +
+							"- Total Comments Analyzed: %d\n" +
+							"- Total 'h' Characters: %d\n" +
+							"- Total Other Characters: %d\n" +
+							"- H-Score: %.4f\n\n" +
+							"^This is a beta version of the h-counter-bot v2. " +
+							"See https://www.reddit.com/r/TheLetterH/comments/1qp6i2j" +
+							"\n^(I am a bot, this action was performed automatically. " +
+							"Contact the mods of r/hcounterbot for any issues.)",
+					mention.getAuthor(), targetUser, totalComments, totalH, nonH, hScore);
 
 			// TODO update cache/db with last fetched comment id and new stats
 
-			// reply to the mention
+			String mentionNameId = mention.getNameId();
+			mentionNameId = mentionNameId.startsWith("t1_") ? mentionNameId : "t1_" + mentionNameId;
+
+			redditService.replyToComment(mentionNameId, replyMessage);
+			mentionsToMarkRead.add(mentionNameId);
 		}
 
 	}

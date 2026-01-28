@@ -65,11 +65,8 @@ public interface RedditClient {
 
 	@POST
 	@Path("/api/read_message")
-	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	Response markMessagesAsRead(@HeaderParam("Authorization") String bearerToken,
-
 			@HeaderParam("User-Agent") String userAgent,
-
 			@FormParam("id") String ids);
 
 }
