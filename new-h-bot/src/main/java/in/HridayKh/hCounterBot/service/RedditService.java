@@ -93,11 +93,11 @@ public class RedditService {
 	void WaitForAndUpdateRateLimit(Response response) {
 		String remainingStr = response.getHeaderString("x-ratelimit-remaining");
 		String resetStr = response.getHeaderString("x-ratelimit-reset");
-		long remainingRateLimitCallsRemaining = 1L;
-		long remainingRateLimitResetTime = 1L;
+		float remainingRateLimitCallsRemaining = 1.0f;
+		float remainingRateLimitResetTime = 1.0f;
 		if (remainingStr != null) {
 			try {
-				remainingRateLimitCallsRemaining = (int) Float.parseFloat(remainingStr);
+				remainingRateLimitCallsRemaining = Float.parseFloat(remainingStr);
 			} catch (NumberFormatException e) {
 				Log.warn("Failed to parse x-ratelimit-remaining: " + remainingStr, e);
 				Span.current().setStatus(StatusCode.ERROR, "Failed to parse x-ratelimit-remaining");
@@ -106,7 +106,7 @@ public class RedditService {
 		}
 		if (resetStr != null) {
 			try {
-				remainingRateLimitResetTime = (int) Float.parseFloat(resetStr);
+				remainingRateLimitResetTime = Float.parseFloat(resetStr);
 			} catch (NumberFormatException e) {
 				Log.warn("Failed to parse x-ratelimit-reset: " + resetStr, e);
 				Span.current().setStatus(StatusCode.ERROR, "Failed to parse x-ratelimit-remaining");
@@ -114,11 +114,11 @@ public class RedditService {
 			}
 		}
 
-		long remainingTimePerCallSeconds = remainingRateLimitResetTime / remainingRateLimitCallsRemaining;
+		float remainingTimePerCallSeconds = (remainingRateLimitResetTime / remainingRateLimitCallsRemaining) * 1000.0f;
 		long extraBufferMillis = 10L;
-		long waitTimeMillis = (remainingTimePerCallSeconds * 1000L) + extraBufferMillis;
+		long waitTimeMillis = ((long) remainingTimePerCallSeconds) + extraBufferMillis;
 		Log.info(remainingTimePerCallSeconds);
-		Log.infof("Remaining Calls: %d, Reset Time (s): %d, Waiting time: %d ms",
+		Log.infof("Remaining: %.2f, Reset: %.2f s, Waiting time: %d ms",
 				remainingRateLimitCallsRemaining, remainingRateLimitResetTime, waitTimeMillis);
 
 		try {
