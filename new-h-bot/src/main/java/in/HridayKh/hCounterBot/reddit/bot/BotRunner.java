@@ -37,7 +37,7 @@ public class BotRunner {
 	private void runLoop() {
 		while (running) {
 			try {
-				Log.info("Reddit Bot iteration started.");
+				Log.info("\n\nReddit Bot iteration started.");
 
 				botLoop.executeIteration();
 

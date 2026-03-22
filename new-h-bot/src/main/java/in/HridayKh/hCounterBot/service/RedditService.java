@@ -7,14 +7,17 @@ import java.util.List;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.resteasy.reactive.ClientWebApplicationException;
 
 import in.HridayKh.hCounterBot.model.RedditMention;
+import in.HridayKh.hCounterBot.model.UserAndStats;
 import in.HridayKh.hCounterBot.reddit.RedditClient;
 import in.HridayKh.hCounterBot.reddit.model.TokenResponse;
-import in.HridayKh.hCounterBot.reddit.model.UserAndStats;
 import in.HridayKh.hCounterBot.reddit.model.types.RedditListing;
 import in.HridayKh.hCounterBot.reddit.model.types.RedditThing;
 import in.HridayKh.hCounterBot.reddit.model.types.TypeT1;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
@@ -244,9 +247,12 @@ public class RedditService {
 	@WithSpan("redditService.targetUser.getUserCommentsBodies")
 	public String[] getUserCommentsBodies(UserAndStats u) {
 		String username = u.user();
-		List<String[]> ranges = u.scannedComments(); // e.g. ["t1_abc:t1_xyz", "t1_foo:t1_bar"]
+		List<String[]> ranges = u.scannedComments();
 
-		Span.current().setAttribute("reddit.target_username", username);
+		Span span = Span.current();
+		span.setAttribute("reddit.target_username", username);
+		span.setAttribute("reddit.existing_ranges_count", ranges.size());
+
 		Log.infof("Fetching comments for user: %s", username);
 		try {
 			String token = handleToken();
@@ -256,7 +262,6 @@ public class RedditService {
 			List<String> commentsBodies = new ArrayList<>();
 			int pages = 0;
 			String paginationCursorAfterCurrent = "";
-
 			boolean hitExistingRange = false;
 			String newRangeStart = null;
 			String newRangeEnd = null;
@@ -264,14 +269,18 @@ public class RedditService {
 			while (!hitExistingRange) {
 				if (pages >= MAX_PAGES_PER_USER)
 					break;
+
 				Response response = redditClient.getUserComments(token, userAgent, username,
 						REDDIT_MAX_COMMENTS_PER_PAGE, "", paginationCursorAfterCurrent);
 				WaitForAndUpdateRateLimit(response);
+
 				RedditListing<TypeT1> listing = response
 						.readEntity(new GenericType<RedditListing<TypeT1>>() {
 						});
+
 				if (listing.data.children == null || listing.data.children.length == 0)
 					break;
+
 				for (RedditThing<TypeT1> child : listing.data.children) {
 					String commentId = normalizeCommentId(child.data.name);
 					if (newRangeStart == null)
@@ -283,6 +292,7 @@ public class RedditService {
 					commentsBodies.add(child.data.body);
 					newRangeEnd = commentId;
 				}
+
 				paginationCursorAfterCurrent = listing.data.after;
 				pages++;
 				if (paginationCursorAfterCurrent == null || paginationCursorAfterCurrent.isBlank())
@@ -291,22 +301,50 @@ public class RedditService {
 
 			// Update ranges based on outcome
 			if (newRangeStart != null && newRangeEnd != null) {
-				if (hitExistingRange)
+				if (hitExistingRange) {
 					ranges.get(0)[0] = newRangeStart;
-				else
+					span.addEvent("range.extended", Attributes.of(
+							AttributeKey.stringKey("reddit.range.new_start"), newRangeStart,
+							AttributeKey.stringKey("reddit.range.end"), ranges.get(0)[1]));
+				} else {
 					ranges.add(0, new String[] { newRangeStart, newRangeEnd });
+					span.addEvent("range.created", Attributes.of(
+							AttributeKey.stringKey("reddit.range.start"), newRangeStart,
+							AttributeKey.stringKey("reddit.range.end"), newRangeEnd));
+				}
 
 				u.updateScannedComments(ranges.stream()
 						.map(r -> r[0] + ":" + r[1])
 						.toArray(String[]::new));
 			}
 
+			span.setAttribute("reddit.comments_fetched", commentsBodies.size());
+			span.setAttribute("reddit.pages_fetched", pages);
+			span.setAttribute("reddit.hit_existing_range", hitExistingRange);
+			span.setAttribute("reddit.updated_ranges_count", ranges.size());
+
 			Log.infof("Fetched %d comments for user: %s", commentsBodies.size(), username);
 			return commentsBodies.toArray(new String[0]);
+		} catch (ClientWebApplicationException e) {
+			int status = e.getResponse().getStatus();
+			if (status == 403 || status == 404) {
+				Log.warnf("Cannot access comments for user %s (HTTP %d - private/banned/deleted)",
+						username, status);
+				span.addEvent("comments.access_denied", Attributes.of(
+						AttributeKey.stringKey("reddit.http_status"), String.valueOf(status),
+						AttributeKey.stringKey("reddit.target_username"), username));
+				return new String[0];
+			}
+			Log.errorf(e, "Error fetching comments for user: %s", username);
+			span.recordException(e,
+					Attributes.of(AttributeKey.stringKey("reddit.target_username"), username));
+			span.setStatus(StatusCode.ERROR, e.getMessage());
+			throw e;
 		} catch (Exception e) {
 			Log.errorf(e, "Error fetching comments for user: %s", username);
-			Span.current().recordException(e);
-			Span.current().setStatus(StatusCode.ERROR, e.getMessage());
+			span.recordException(e, Attributes.of(
+					AttributeKey.stringKey("reddit.target_username"), username));
+			span.setStatus(StatusCode.ERROR, e.getMessage());
 			throw e;
 		}
 	}

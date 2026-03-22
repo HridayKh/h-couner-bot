@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>h-counter-bot</title>
+	<script src="/htmx.js"></script>
+	<link rel="icon" type="image/x-icon"
+		href="data:image/x-icon;base64,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AAAAAAAAAAAAAAAAAgcHBwcDAABAAEEIAUgBSAEIQQhBCAFIAQhBAAlAAQgAAAAAAAAAAAAHBwcHBgAAAAAAAAAAAAAAAAAAAAAAAAMHBwcHAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgICAgIAAAAAAAAAAAAAAAAAAAAAAAABAgICAgEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAkJAAAAAAAAAAAAAAAAAAAAAAgQGBAAAAAAAAAAAwIAAAAAAAAAAAAAAAAAAAAAAAABAQAAAAAAAAAAAAAAAABSSVIAAAAAAAAAAEAAAAAAAAAYMBAQAAAAAAAABQIEAgAAAAAAAAAAgAAAAAAAAABEhIQCAAAAAAAAAAAAAABSCQBSAAAAAAAAAABAAAAAAAAAABggAAAAAAAAAAEAAgQAAAAAAABAQEAAAAAAAAAAQgABhAAAAAAAAAAAAAAAUgAAUgAAAAAAAAAAQAAAAAAAAAAAGCAAAAAAAAAAAgYBAAAAAAAAQABAAAAAAAAAAEIBQ4QAAAAAAAAAAAAAAFIJAFIAAAAAAAAAQEAAAAAAAAAICAAoAAAAAAAAAQAEAgAAAAAAAABAQAAAAAAAAACFQ0MAAAAAAAAAAAAAAAAAUhJJAAAAAAAAAABAQAAAAAAAECgYIAAAAAAAAAQDBQEAAAAAAAAAQEAAAAAAAAAAQ4RCAQAAAAAAAAAAAAAAAABJAAAAAAAAAAAAAAAAAAAAAAAIEAAAAAAAAAAAAgEAAAAAAAAAAAAAAAAAAAAAAAFDQwEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACQlACQAAAAkACUAJAAkASQAJAAkASQAJAAkASQkACQkJAAkACQlAAAkACQkASQAJQAAAAAAAAAAAAAAAAAAAAEkJSRJSAAkJUlIJCUkSSRJJUglJUgkJUglSAAlJEkkJSRJJCVJJCVIJSRJJUhIJUgkAAAAAAAAAAAAAAAAAAAAJCUkASQAASUkJSUkJSQAACUkJSQlJSUlJSRJJCUlJUkkJSUkJSQkJSQlJSQlJSVJJCUlJSUkASQlJCVJJCVJJCUkSCUkJAAkJAAkACQAAAAAJCQAJAAkJCQAJSQkJAAkJAAkACQkASQAJAAkJAAkACQAJCQAJCQlJCQAJAAkACQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" />
+	<style>
+		*,
+		*::before,
+		*::after {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+		}
+
+		:root {
+			--bg: #0a0d14;
+			--surface: rgba(255, 255, 255, 0.03);
+			--border: rgba(255, 255, 255, 0.07);
+			--text: #e2e8f5;
+			--muted: #6b7fa3;
+			--faint: #2d3748;
+			--blue: #60a5fa;
+			--green: #34d399;
+			--red: #f87171;
+			--purple: #a78bfa;
+			--orange: #fb923c;
+			--yellow: #fbbf24;
+		}
+
+		html,
+		body {
+			background: var(--bg);
+			color: var(--text);
+			font-family: sans-serif;
+			min-height: 100vh;
+		}
+
+		body::before {
+			content: '';
+			position: fixed;
+			inset: 0;
+			pointer-events: none;
+			z-index: 0;
+			background:
+				radial-gradient(ellipse 80% 50% at 50% -10%, rgba(59, 130, 246, 0.10) 0%, transparent 70%),
+				radial-gradient(ellipse 55% 40% at 85% 85%, rgba(139, 92, 246, 0.07) 0%, transparent 60%);
+		}
+
+		/* ── Search ── */
+		#search {
+			width: 100%;
+			background: rgba(255, 255, 255, 0.04);
+			border: 1px solid var(--border);
+			border-radius: 12px;
+			padding: 13px 16px 13px 42px;
+			color: var(--text);
+			font-size: 0.93rem;
+			font-family: sans-serif;
+			outline: none;
+			transition: border-color 0.2s, box-shadow 0.2s;
+		}
+
+		#search:focus {
+			border-color: rgba(96, 165, 250, 0.45);
+			box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.09);
+		}
+
+		#search::placeholder {
+			color: var(--faint);
+		}
+
+		/* ── Table ── */
+		.table-header {
+			display: grid;
+			grid-template-columns: 64px 1fr 110px 100px 100px 110px 100px;
+			padding: 10px 20px;
+			border-bottom: 1px solid var(--border);
+			color: var(--faint);
+			font-size: 0.68rem;
+			font-weight: 700;
+			letter-spacing: 0.1em;
+			text-transform: uppercase;
+		}
+
+		.col-r {
+			text-align: right;
+		}
+
+		#rows {
+			min-height: 200px;
+		}
+
+		.row:hover {
+			background: rgba(255, 255, 255, 0.035);
+		}
+
+		.row.top1 {
+			border-left-color: #f59e0b;
+		}
+
+		.row.top2 {
+			border-left-color: #94a3b8;
+		}
+
+		.row.top3 {
+			border-left-color: #b45309;
+		}
+
+		.user {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			font-weight: 600;
+			font-size: 0.88rem;
+			color: #b0bdd4;
+		}
+
+		.mono {
+			font-family: 'Roboto Mono', monospace;
+			font-size: 0.82rem;
+			font-weight: 500;
+			display: flex;
+			align-items: center;
+			justify-content: flex-end;
+		}
+
+		/* ── Pagination ── */
+		.page-btn {
+			background: rgba(255, 255, 255, 0.04);
+			border: 1px solid rgba(255, 255, 255, 0.08);
+			border-radius: 8px;
+			padding: 7px 13px;
+			color: var(--muted);
+			cursor: pointer;
+			font-family: 'Roboto Mono', monospace;
+			font-size: 0.82rem;
+			font-weight: 600;
+			transition: all 0.13s;
+			min-width: 36px;
+			text-align: center;
+			text-decoration: none;
+			display: inline-block;
+		}
+
+		.page-btn:hover {
+			background: rgba(255, 255, 255, 0.08);
+			color: var(--text);
+		}
+
+		.page-btn.active {
+			background: rgba(96, 165, 250, 0.18);
+			border-color: rgba(96, 165, 250, 0.45);
+			color: var(--blue);
+		}
+
+		.page-btn.disabled {
+			color: var(--faint);
+			cursor: not-allowed;
+			pointer-events: none;
+		}
+
+		/* ── HTMX loading indicator ── */
+		.htmx-indicator {
+			display: none;
+		}
+
+		.htmx-request .htmx-indicator {
+			display: block;
+		}
+
+		/* hide chars */
+		@media (max-width: 760px) {
+
+			.table-header,
+			.row {
+				grid-template-columns: 52px 1fr 90px 80px 80px 90px;
+			}
+
+			.table-header>*:nth-child(7),
+			.row>*:nth-child(7) {
+				display: none;
+			}
+		}
+
+		/* hide comments */
+		@media (max-width: 670px) {
+
+			.table-header,
+			.row {
+				grid-template-columns: 52px 1fr 90px 80px 80px;
+			}
+
+			.table-header>*:nth-child(6),
+			.row>*:nth-child(6),
+			.table-header>*:nth-child(7),
+			.row>*:nth-child(7) {
+				display: none;
+			}
+		}
+
+		/* hide total non h */
+		@media (max-width: 430px) {
+
+			.table-header,
+			.row {
+				grid-template-columns: 52px 1fr 90px 80px;
+			}
+
+			.table-header>*:nth-child(5),
+			.row>*:nth-child(5),
+			.table-header>*:nth-child(6),
+			.row>*:nth-child(6),
+			.table-header>*:nth-child(7),
+			.row>*:nth-child(7) {
+				display: none;
+			}
+		}
+
+		/* hide total h */
+		@media (max-width: 380px) {
+
+			.table-header,
+			.row {
+				grid-template-columns: 52px 1fr 90px;
+			}
+
+			.table-header>*:nth-child(4),
+			.row>*:nth-child(4),
+			.table-header>*:nth-child(5),
+			.row>*:nth-child(5),
+			.table-header>*:nth-child(6),
+			.row>*:nth-child(6),
+			.table-header>*:nth-child(7),
+			.row>*:nth-child(7) {
+				display: none;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<div style="position: relative; z-index: 1; max-width: 1140px; margin: 0 auto; padding: 0 20px 80px;">
+		<div style="padding: 52px 0 36px; text-align: center;">
+			<h1
+				style="font-size: clamp(2.2rem, 5vw, 3.2rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; background: linear-gradient(135deg, var(--text) 30%, var(--blue) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px;">
+				h-counter-bot
+			</h1>
+		</div>
+		<div style="position: relative; margin-bottom: 24px;">
+			<span
+				style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--faint);			font-size: 1rem;			pointer-events: none;">⌕</span>
+			<input id="search" type="search" name="q" placeholder="Search username…" autocomplete="off"
+				hx-get="/board" hx-trigger="input changed delay:400ms, search" hx-target="#rows"
+				hx-include="[name='q'],[name='page']" hx-indicator="#spinner" />
+
+			<input type="hidden" name="page" value="1"
+				hx-on:htmx:before-request="if(event.detail.elt.id==='search') this.value='1'" />
+		</div>
+		<div class="table-header">
+			<span>Rank</span>
+			<span>Username</span>
+			<span class="col-r">hScore</span>
+			<span class="col-r">Total H</span>
+			<span class="col-r">Non-H</span>
+			<span class="col-r">Comments</span>
+			<span class="col-r">Chars</span>
+		</div>
+
+		<div id="rows" hx-get="/board" hx-trigger="load" hx-vals='{"q":"","page":"1"}'>
+			<div style="text-align: center; padding: 48px; color: var(--muted); font-size: 0.85rem;"
+				id="spinner">Loading…</div>
+		</div>
+	</div>
+</body>
+
+</html>

@@ -1,0 +1,52 @@
+{#for entry in entries}
+{#let rank = entry.rank}
+<div class="{#if rank == 1}top1{#else if rank == 2}top2{#else if rank == 3}top3{/if}" id="row-{rank}"
+	style="display: grid; grid-template-columns: 64px 1fr 110px 100px 100px 110px 100px; padding: 12px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); background: transparent; cursor: pointer; transition: background 0.12s; border-left: 2px solid transparent;">
+
+	<div
+		style="display: flex; align-items: center; font-family: 'Roboto Mono', monospace; font-size: 0.78rem; font-weight: 600; color: var(--muted);">
+		{#if rank == 1}<span style="font-size: 1.1rem;">🥇</span>
+		{#else if rank == 2}<span style="font-size: 1.1rem;">🥈</span>
+		{#else if rank == 3}<span style="font-size: 1.1rem;">🥉</span>
+		{#else}#{rank}
+		{/if}
+	</div>
+	<div class="user">{entry.username}</div>
+	<div class="mono col-r" style="color: var(--blue);">{entry.hScoreFormatted}</div>
+	<div class="mono col-r" style="color: var(--green);">{entry.totalHFormatted}</div>
+	<div class="mono col-r" style="color: var(--red);">{entry.totalNonHFormatted}</div>
+	<div class="mono col-r" style="color: var(--muted);">{entry.totalCommentsFormatted}</div>
+	<div class="mono col-r" style="color: var(--purple);">{entry.totalCharsFormatted}</div>
+</div>
+{/for}
+
+<div style="display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; margin-top: 32px;">
+	{#if hasPrev}
+	<a class="page-btn" hx-get="/board" hx-target="#rows" hx-vals='\{"q":"{q}","page":"{prevPage}"}' ...>← Prev</a>
+	{#else}
+	<a class="page-btn disabled">← Prev</a>
+	{/if}
+
+	{#if showFirstEllipsis}
+	<a class="page-btn" hx-get="/board" hx-target="#rows" hx-vals='\{"q":"{q}","page":"1"}' ...>1</a>
+	<span style="color:var(--faint);padding:0 4px">…</span>
+	{/if}
+
+	<a class="page-btn active">{page}</a>
+
+	{#if showLastEllipsis}
+	<span style="color:var(--faint);padding:0 4px">…</span>
+	<a class="page-btn" hx-get="/board" hx-target="#rows" hx-vals='\{"q":"{q}","page":"{totalPages}"}'
+		...>{totalPages}</a>
+	{/if}
+
+	{#if hasNext}
+	<a class="page-btn" hx-get="/board" hx-target="#rows" hx-vals='\{"q":"{q}","page":"{nextPage}"}' ...>Next →</a>
+	{#else}
+	<a class="page-btn disabled">Next →</a>
+	{/if}
+</div>
+
+<div
+	style="text-align: center; margin-top: 10px; color: var(--faint); font-size: 0.73rem; font-family: 'Roboto Mono', monospace;">
+	page {page} / {totalPages} · {total} users</div>

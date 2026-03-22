@@ -1,16 +1,16 @@
-package in.HridayKh.hCounterBot.reddit.model;
+package in.HridayKh.hCounterBot.model;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class UserAndStats {
 
-	private String username;
-	private String[] scannedComments; // list of scanned ranges in format: a:b, c:d, ...
-	private long totalComments;
-	private long totalH;
-	private long totalNonH;
-	private double hScore;
+	public String username;
+	public String[] scannedComments; // list of scanned ranges in format: a:b, c:d, ...
+	public long totalComments;
+	public long totalH;
+	public long totalNonH;
+	public double hScore;
 
 	public UserAndStats(String username, String[] scannedComments, long totalComments, long totalH,
 			long totalNonH, double hScore) {
