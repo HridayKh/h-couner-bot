@@ -11,6 +11,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import in.HridayKh.hCounterBot.model.RedditMention;
 import in.HridayKh.hCounterBot.reddit.RedditClient;
 import in.HridayKh.hCounterBot.reddit.model.TokenResponse;
+import in.HridayKh.hCounterBot.reddit.model.UserAndStats;
 import in.HridayKh.hCounterBot.reddit.model.types.RedditListing;
 import in.HridayKh.hCounterBot.reddit.model.types.RedditThing;
 import in.HridayKh.hCounterBot.reddit.model.types.TypeT1;
@@ -44,6 +45,9 @@ public class RedditService {
 
 	@ConfigProperty(name = "reddit.bot-secret")
 	String botSecret;
+
+	private static final int REDDIT_MAX_COMMENTS_PER_PAGE = 100;
+	private static final int MAX_PAGES_PER_USER = 10;
 
 	private String bearerToken;
 	private long tokenExpiry;
@@ -114,7 +118,8 @@ public class RedditService {
 			}
 		}
 
-		float remainingTimePerCallSeconds = (remainingRateLimitResetTime / remainingRateLimitCallsRemaining) * 1000.0f;
+		float remainingTimePerCallSeconds = (remainingRateLimitResetTime / remainingRateLimitCallsRemaining)
+				* 1000.0f;
 		long extraBufferMillis = 10L;
 		long waitTimeMillis = ((long) remainingTimePerCallSeconds) + extraBufferMillis;
 		Log.info(remainingTimePerCallSeconds);
@@ -237,7 +242,10 @@ public class RedditService {
 	}
 
 	@WithSpan("redditService.targetUser.getUserCommentsBodies")
-	public String[] getUserCommentsBodies(String username, String newestScannedCommentId) {
+	public String[] getUserCommentsBodies(UserAndStats u) {
+		String username = u.user();
+		List<String[]> ranges = u.scannedComments(); // e.g. ["t1_abc:t1_xyz", "t1_foo:t1_bar"]
+
 		Span.current().setAttribute("reddit.target_username", username);
 		Log.infof("Fetching comments for user: %s", username);
 		try {
@@ -246,58 +254,75 @@ public class RedditService {
 				throw new RuntimeException("Reddit Bearer Token is Null!");
 
 			List<String> commentsBodies = new ArrayList<>();
-			String before = newestScannedCommentId == null ? "" : newestScannedCommentId;
-			before = before.toLowerCase().startsWith("t1_") || before.isBlank() ? before : "t1_" + before;
-
-			int redditMaxLimit = 100;
-			int maxPagesPerUser = 10;
-
 			int pages = 0;
-			String currentAfter = "";
-			boolean foundScannedComment = false;
-			while (!foundScannedComment) {
-				// only apply the comment limit if we are noo scanning after a scanned comment
-				if (before.isBlank() && pages >= maxPagesPerUser)
+			String paginationCursorAfterCurrent = "";
+
+			boolean hitExistingRange = false;
+			String newRangeStart = null;
+			String newRangeEnd = null;
+
+			while (!hitExistingRange) {
+				if (pages >= MAX_PAGES_PER_USER)
 					break;
-
 				Response response = redditClient.getUserComments(token, userAgent, username,
-						redditMaxLimit, "", currentAfter);
+						REDDIT_MAX_COMMENTS_PER_PAGE, "", paginationCursorAfterCurrent);
 				WaitForAndUpdateRateLimit(response);
-
 				RedditListing<TypeT1> listing = response
 						.readEntity(new GenericType<RedditListing<TypeT1>>() {
 						});
-
 				if (listing.data.children == null || listing.data.children.length == 0)
 					break;
-
 				for (RedditThing<TypeT1> child : listing.data.children) {
-					if (commentsBodies.size() < 1)
-						commentsBodies.add(child.data.name);
-
-					if (child.data.name.equals(newestScannedCommentId)) {
-						foundScannedComment = true;
+					String commentId = normalizeCommentId(child.data.name);
+					if (newRangeStart == null)
+						newRangeStart = commentId;
+					if (isInAnyRange(commentId, ranges)) {
+						hitExistingRange = true;
 						break;
 					}
-
 					commentsBodies.add(child.data.body);
+					newRangeEnd = commentId;
 				}
-				currentAfter = listing.data.after;
+				paginationCursorAfterCurrent = listing.data.after;
 				pages++;
-
-				if (currentAfter == null || currentAfter.isBlank())
+				if (paginationCursorAfterCurrent == null || paginationCursorAfterCurrent.isBlank())
 					break;
 			}
 
-			Log.infof("Fetched %d comments for user: %s", commentsBodies.size() - 1, username);
-			return commentsBodies.toArray(new String[0]);
+			// Update ranges based on outcome
+			if (newRangeStart != null && newRangeEnd != null) {
+				if (hitExistingRange)
+					ranges.get(0)[0] = newRangeStart;
+				else
+					ranges.add(0, new String[] { newRangeStart, newRangeEnd });
 
+				u.updateScannedComments(ranges.stream()
+						.map(r -> r[0] + ":" + r[1])
+						.toArray(String[]::new));
+			}
+
+			Log.infof("Fetched %d comments for user: %s", commentsBodies.size(), username);
+			return commentsBodies.toArray(new String[0]);
 		} catch (Exception e) {
 			Log.errorf(e, "Error fetching comments for user: %s", username);
 			Span.current().recordException(e);
 			Span.current().setStatus(StatusCode.ERROR, e.getMessage());
 			throw e;
 		}
+	}
+
+	private String normalizeCommentId(String id) {
+		if (id == null || id.isBlank())
+			return id;
+		id = id.trim().toLowerCase();
+		return id.startsWith("t1_") ? id : "t1_" + id;
+	}
+
+	private boolean isInAnyRange(String commentId, List<String[]> ranges) {
+		for (String[] range : ranges)
+			if (commentId.equals(range[0]) || commentId.equals(range[1]))
+				return true;
+		return false;
 	}
 
 	@WithSpan("redditService.comments.replyToComment")
