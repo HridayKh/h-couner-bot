@@ -11,6 +11,7 @@ import org.jboss.resteasy.reactive.ClientWebApplicationException;
 
 import in.HridayKh.hCounterBot.model.RedditMention;
 import in.HridayKh.hCounterBot.model.UserAndStats;
+import in.HridayKh.hCounterBot.reddit.model.ProcessedMentionsReturn;
 import in.HridayKh.hCounterBot.reddit.RedditClient;
 import in.HridayKh.hCounterBot.reddit.model.TokenResponse;
 import in.HridayKh.hCounterBot.reddit.model.types.RedditListing;
@@ -137,7 +138,7 @@ public class RedditService {
 	}
 
 	@WithSpan("redditService.comments.getUnread")
-	public RedditMention[] getUnreadComments() {
+	public ProcessedMentionsReturn getUnreadComments() {
 		Log.infof("Fetching unread messages from Reddit");
 
 		try {
@@ -157,11 +158,16 @@ public class RedditService {
 			Log.infof("processing %d unread_comments", children.length);
 
 			List<RedditMention> comments = new ArrayList<>();
+			List<RedditMention> comments_not_mentions = new ArrayList<>();
 			for (RedditThing<TypeT1> child : children) {
 				TypeT1 comment = child.data;
 
-				if (!comment.was_comment || !comment.body.toLowerCase().contains("u/h-counter-bot"))
+				if (!comment.was_comment || !comment.body.toLowerCase().contains("u/h-counter-bot")) {
+					comments_not_mentions.add(new RedditMention(
+							"unknown", comment.subreddit, comment.parent_id, comment.name,
+							comment.author, comment.body));
 					continue;
+				}
 
 				String[] contextParts = comment.context.split("/");
 				String postId = contextParts.length > 4 ? contextParts[4] : "unknown";
@@ -178,8 +184,8 @@ public class RedditService {
 			Log.infof("Processed %d unread comments", comments.size());
 			Log.info("processing_unread_comments_completed");
 
-			return comments.toArray(new RedditMention[0]);
-
+			return new ProcessedMentionsReturn(comments.toArray(new RedditMention[0]),
+					comments_not_mentions.toArray(new RedditMention[0]));
 		} catch (Exception e) {
 			Log.errorf(e, "Error fetching unread comments");
 			Span.current().recordException(e);
@@ -391,7 +397,6 @@ public class RedditService {
 				sb.append(", ");
 			sb.append(mentionId);
 		}
-		Log.infof("Marking mentions as read: %s", sb.toString());
 
 		String token = handleToken();
 		if (token == null)
@@ -399,6 +404,5 @@ public class RedditService {
 
 		Response response = redditClient.markMessagesAsRead(token, userAgent, sb.toString());
 		WaitForAndUpdateRateLimit(response);
-		Log.info("Marked mentions as read successfully.");
 	}
 }

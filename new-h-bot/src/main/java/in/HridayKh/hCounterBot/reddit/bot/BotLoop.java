@@ -1,10 +1,12 @@
 package in.HridayKh.hCounterBot.reddit.bot;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import in.HridayKh.hCounterBot.model.RedditMention;
 import in.HridayKh.hCounterBot.model.UserAndStats;
+import in.HridayKh.hCounterBot.reddit.model.ProcessedMentionsReturn;
 import in.HridayKh.hCounterBot.repository.UserStatsRepository;
 import in.HridayKh.hCounterBot.service.RedditService;
 import io.opentelemetry.api.common.AttributeKey;
@@ -35,7 +37,11 @@ public class BotLoop {
 	protected void executeIteration() {
 		Span iterSpan = Span.current();
 
-		RedditMention[] unreadMentions = redditService.getUnreadComments();
+		ProcessedMentionsReturn processedMentionsReturn = redditService.getUnreadComments();
+
+		RedditMention[] unreadMentions = processedMentionsReturn.comments();
+		RedditMention[] not_mentions_to_mark_read = processedMentionsReturn.comments_not_mentions();
+
 		iterSpan.setAttribute("reddit.unread_mentions_count", unreadMentions.length);
 
 		List<String> mentionsToMarkRead = new ArrayList<>();
@@ -47,10 +53,21 @@ public class BotLoop {
 			mentionsToMarkRead.add(mentionId);
 		}
 
+		Log.infof("Marking mentions as read");
 		if (!mentionsToMarkRead.isEmpty()) {
 			redditService.markMentionsAsRead(mentionsToMarkRead.toArray(new String[0]));
 			iterSpan.setAttribute("reddit.mentions_marked_read", mentionsToMarkRead.size());
 		}
+		Log.info("Marked mentions as read successfully.");
+
+		Log.infof("Marking non mentions as read");
+		if (not_mentions_to_mark_read.length > 0)
+			redditService.markMentionsAsRead(Arrays.stream(not_mentions_to_mark_read)
+					.map((a) -> {
+						String b = a.getNameId();
+						return b.startsWith("t1_") ? b : "t1_" + b;
+					}).toArray(String[]::new));
+		Log.info("Marked non mentions as read successfully.");
 	}
 
 	@WithSpan("redditBot.processMention")
