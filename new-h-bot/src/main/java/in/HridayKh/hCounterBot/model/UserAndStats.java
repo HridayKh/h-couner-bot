@@ -1,6 +1,7 @@
 package in.HridayKh.hCounterBot.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class UserAndStats {
@@ -40,7 +41,7 @@ public class UserAndStats {
 					parts[1].startsWith("t1_") ? parts[1] : "t1_" + parts[1]
 			});
 		}
-		this.scannedComments = ranges.toArray(new String[0]);
+		this.scannedComments = ranges.stream().map((a) -> a[0] + ":" + a[1]).toArray(String[]::new);
 		return ranges;
 	}
 
